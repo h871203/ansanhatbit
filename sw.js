@@ -1,9 +1,10 @@
 // 앱 화면은 오프라인에서도 열리도록 저장하고, 교회 데이터(data/*.json)는 항상 새로 받아 옵니다.
-var CACHE = 'hatbit-v4';
+var CACHE = 'hatbit-v5';
 var SHELL = [
     './', 'index.html', 'css/app.css', 'js/bible.js', 'js/app.js', 'manifest.webmanifest',
     'icons/icon.svg', 'icons/icon-192.png', 'icons/icon-512.png',
-    'data/church.json', 'data/sermons.json', 'data/qt.json', 'data/prayers.json', 'data/news.json'
+    'data/church.json', 'data/sermons.json', 'data/qt.json', 'data/prayers.json', 'data/news.json',
+    'data/audio-kjv.json'
 ];
 
 self.addEventListener('install', function (e) {

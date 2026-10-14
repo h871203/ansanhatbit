@@ -48,9 +48,9 @@ var Bible = (function () {
         return 'https://www.biblegateway.com/passage/?version=NIV&search=' + encodeURIComponent(enRef(code, chapter, from, to));
     }
 
-    // 영어 본문(WEB, 퍼블릭 도메인) — bible-api.com. 장 전체를 받음 (유다서처럼 1장짜리 책도 정확히)
-    function fetchEnglish(code, chapter) {
-        return fetch('https://bible-api.com/data/web/' + byCode[code].usfm + '/' + chapter)
+    // 영어 본문(WEB 또는 KJV, 둘 다 퍼블릭 도메인) — bible-api.com. 장 전체를 받음 (유다서처럼 1장짜리 책도 정확히)
+    function fetchEnglish(code, chapter, translation) {
+        return fetch('https://bible-api.com/data/' + (translation || 'web') + '/' + byCode[code].usfm + '/' + chapter)
             .then(function (r) { if (!r.ok) throw new Error('bible-api'); return r.json(); })
             .then(function (d) { return d.verses || []; });
     }

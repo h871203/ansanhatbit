@@ -67,7 +67,7 @@
             a.classList.toggle('active', a.dataset.tab === name);
         });
         if (name === 'bible') showChapter(); // iframe은 성경 화면을 열 때 불러옴
-        else if (typeof stopSpeech === 'function') stopSpeech();
+        else { stopSpeech(); $('kjvAudio').pause(); }
         window.scrollTo(0, 0);
     }
     window.addEventListener('hashchange', route);
@@ -288,6 +288,8 @@
     var version = store.get('bibleVersion', 'ko');
     var shownKey = null, shownEnKey = null;
     var enVerses = [];
+    var voiceMode = store.get('voiceMode', 'human'); // human: 사람 낭독(KJV), tts: 휴대폰 음성(WEB)
+    var audioContinue = false;
 
     // ---------- 영어 듣기 (휴대폰 내장 음성, 저작권 문제 없음) ----------
     var canSpeak = 'speechSynthesis' in window && 'SpeechSynthesisUtterance' in window;
@@ -351,21 +353,80 @@
     $('enReader').addEventListener('click', function (e) {
         // 절을 누르면 그 절부터 읽기
         var p = e.target.closest('[data-i]');
-        if (!p || !canSpeak) return;
+        if (!p || !canSpeak || usingHuman()) return;
         stopSpeech();
         speakToken++;
         speakFrom(+p.dataset.i);
     });
     if (canSpeak) speechSynthesis.getVoices(); // 일부 브라우저는 목록을 미리 불러와야 함
 
+    // ---------- 사람 낭독 (LibriVox KJV, 퍼블릭 도메인) ----------
+    function humanSegment(book, chapter) {
+        var b = data.audio && data.audio.books && data.audio.books[book];
+        if (!b) return null;
+        for (var i = 0; i < b.segments.length; i++) {
+            var s = b.segments[i];
+            if (chapter >= s[0] && chapter <= s[1]) {
+                return { from: s[0], to: s[1], url: data.audio.base + b.item + '/' + s[2] };
+            }
+        }
+        return null;
+    }
+    function usingHuman() { return voiceMode === 'human' && !!humanSegment(pos.book, pos.chapter); }
+    function englishTranslation() { return usingHuman() ? 'kjv' : 'web'; }
+
+    function updateListenPanels() {
+        var seg = humanSegment(pos.book, pos.chapter);
+        var human = voiceMode === 'human' && !!seg;
+        document.querySelectorAll('#voiceSeg button').forEach(function (b) {
+            b.classList.toggle('active', b.dataset.mode === voiceMode);
+            b.setAttribute('aria-selected', b.dataset.mode === voiceMode);
+        });
+        $('humanPanel').hidden = !human;
+        $('noHumanMsg').hidden = !(voiceMode === 'human' && !seg);
+        $('ttsPanel').hidden = human || !canSpeak;
+        var audio = $('kjvAudio');
+        if (!human) { audio.pause(); return; }
+        var name = Bible.book(pos.book).name;
+        $('audioLabel').textContent = '🎧 ' + name + ' ' + (seg.from === seg.to ? seg.from + '장' : seg.from + '–' + seg.to + '장') +
+            ' 낭독' + (seg.from !== seg.to ? ' (' + seg.from + '장부터 이어서 읽습니다)' : '');
+        if (audio.dataset.src !== seg.url) { // 같은 녹음 안에서 장만 바뀌면 계속 재생
+            audio.dataset.src = seg.url;
+            audio.src = seg.url;
+        }
+        if (audioContinue) { audioContinue = false; audio.play().catch(function () {}); }
+    }
+
+    $('voiceSeg').addEventListener('click', function (e) {
+        var b = e.target.closest('button');
+        if (!b) return;
+        voiceMode = b.dataset.mode;
+        store.set('voiceMode', voiceMode);
+        stopSpeech();
+        $('kjvAudio').pause();
+        showChapter();
+    });
+
+    $('kjvAudio').addEventListener('ended', function () {
+        // 녹음이 끝나면 그다음 장으로 이어서 듣기 (녹음이 없는 책은 휴대폰 음성으로)
+        var seg = humanSegment(pos.book, pos.chapter);
+        var last = seg ? seg.to : pos.chapter;
+        var next = Bible.step(pos.book, last, 1);
+        if (!next) return;
+        if (humanSegment(next.book, next.chapter)) audioContinue = true;
+        else continueListening = canSpeak;
+        goTo(next.book, next.chapter);
+    });
+
     function renderEnglish() {
-        var key = pos.book + pos.chapter;
+        var translation = englishTranslation();
+        var key = pos.book + pos.chapter + translation;
         if (shownEnKey === key) return;
         shownEnKey = key;
         var box = $('enReader');
         box.innerHTML = '<p class="muted center">Loading…</p>';
         enVerses = [];
-        Bible.fetchEnglish(pos.book, pos.chapter).then(function (verses) {
+        Bible.fetchEnglish(pos.book, pos.chapter, translation).then(function (verses) {
             if (shownEnKey !== key) return; // 그 사이 다른 장으로 이동함
             enVerses = verses;
             box.innerHTML = verses.map(function (v, i) {
@@ -386,20 +447,24 @@
         $('chapterSelect').value = pos.chapter;
         $('bibleTitle').textContent = Bible.label(pos) + (version === 'en' ? ' · ' + Bible.enRef(pos.book, pos.chapter) : '');
         $('nivLink').href = Bible.nivUrl(pos.book, pos.chapter);
-        document.querySelectorAll('.segmented button').forEach(function (b) {
+        document.querySelectorAll('#versionSeg button').forEach(function (b) {
             b.classList.toggle('active', b.dataset.ver === version);
             b.setAttribute('aria-selected', b.dataset.ver === version);
         });
-        if (shownEnKey !== pos.book + pos.chapter || version !== 'en') stopSpeech();
+        if (shownEnKey !== pos.book + pos.chapter + englishTranslation() || version !== 'en') stopSpeech();
         $('koReader').hidden = version !== 'ko';
         $('enReader').hidden = version !== 'en';
-        $('listenBar').hidden = version !== 'en' || !canSpeak;
-        $('bibleSource').textContent = version === 'en'
-            ? 'English: World English Bible (퍼블릭 도메인) · NIV는 BibleGateway에서 열립니다'
-            : '본문: 개역한글 (ibibles.net 제공)';
+        $('listenBar').hidden = version !== 'en';
+        $('bibleSource').textContent = version !== 'en' ? '본문: 개역한글 (ibibles.net 제공)'
+            : usingHuman() ? 'English: King James Version · 낭독: LibriVox 자원봉사자 (퍼블릭 도메인)'
+            : 'English: World English Bible (퍼블릭 도메인) · NIV는 BibleGateway에서 열립니다';
         if (version === 'en') {
+            updateListenPanels();
             renderEnglish();
-        } else if (shownKey !== pos.book + pos.chapter) {
+        } else {
+            $('kjvAudio').pause();
+        }
+        if (version !== 'en' && shownKey !== pos.book + pos.chapter) {
             $('bibleFrame').src = Bible.quoteUrl(pos.book, pos.chapter);
             shownKey = pos.book + pos.chapter;
         }
@@ -413,7 +478,7 @@
         else showChapter();
     }
 
-    document.querySelector('.segmented').addEventListener('click', function (e) {
+    $('versionSeg').addEventListener('click', function (e) {
         var b = e.target.closest('button');
         if (!b) return;
         version = b.dataset.ver;
@@ -608,8 +673,8 @@
 
     // ---------- 시작 ----------
     fillBookSelect();
-    Promise.all(['church', 'sermons', 'qt', 'prayers', 'news'].map(loadJson)).then(function (res) {
-        data = { church: res[0], sermons: res[1], qt: res[2], prayers: res[3], news: res[4] };
+    Promise.all(['church', 'sermons', 'qt', 'prayers', 'news', 'audio-kjv'].map(loadJson)).then(function (res) {
+        data = { church: res[0], sermons: res[1], qt: res[2], prayers: res[3], news: res[4], audio: res[5] };
         renderHome();
         renderPrayerTimes();
         renderPrayed();

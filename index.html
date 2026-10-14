@@ -93,7 +93,7 @@
                 <select id="chapterSelect" aria-label="장"></select>
             </div>
             <div class="version-bar">
-                <div class="segmented" role="tablist" aria-label="번역본">
+                <div class="segmented" id="versionSeg" role="tablist" aria-label="번역본">
                     <button data-ver="ko" role="tab">한글</button>
                     <button data-ver="en" role="tab">English</button>
                 </div>
@@ -103,13 +103,24 @@
             <div class="reader" id="koReader">
                 <iframe id="bibleFrame" title="성경 본문" loading="lazy"></iframe>
             </div>
-            <div class="listen-bar" id="listenBar" hidden>
-                <button class="btn btn-primary" id="listenBtn">🔊 듣기</button>
-                <select id="listenRate" aria-label="읽기 속도">
-                    <option value="0.8">천천히</option>
-                    <option value="1" selected>보통</option>
-                    <option value="1.2">빠르게</option>
-                </select>
+            <div class="listen-box" id="listenBar" hidden>
+                <div class="segmented" id="voiceSeg" role="tablist" aria-label="듣기 방식">
+                    <button data-mode="human" role="tab">🎧 사람 낭독</button>
+                    <button data-mode="tts" role="tab">🤖 휴대폰 음성</button>
+                </div>
+                <div id="humanPanel">
+                    <p class="audio-label" id="audioLabel"></p>
+                    <audio id="kjvAudio" controls preload="none"></audio>
+                </div>
+                <p class="muted small" id="noHumanMsg" hidden>이 책은 사람 낭독 녹음이 없어 휴대폰 음성으로 읽어 드립니다.</p>
+                <div class="listen-bar" id="ttsPanel">
+                    <button class="btn btn-primary" id="listenBtn">🔊 듣기</button>
+                    <select id="listenRate" aria-label="읽기 속도">
+                        <option value="0.8">천천히</option>
+                        <option value="1" selected>보통</option>
+                        <option value="1.2">빠르게</option>
+                    </select>
+                </div>
             </div>
             <div class="reader en-reader" id="enReader" hidden></div>
             <div class="pager">
