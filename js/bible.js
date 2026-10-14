@@ -1,4 +1,4 @@
-// 성경 66권 목록 — [ibibles.net 코드, 한글 이름, 장 수, 영어 이름]
+// 성경 66권 목록 — [책 코드, 한글 이름, 장 수, 영어 이름]
 var BIBLE_BOOKS = [
     ['gen', '창세기', 50, 'Genesis'], ['exo', '출애굽기', 40, 'Exodus'], ['lev', '레위기', 27, 'Leviticus'], ['num', '민수기', 36, 'Numbers'],
     ['deu', '신명기', 34, 'Deuteronomy'], ['jos', '여호수아', 24, 'Joshua'], ['judg', '사사기', 21, 'Judges'], ['rut', '룻기', 4, 'Ruth'],
@@ -31,12 +31,6 @@ var Bible = (function () {
 
     function book(code) { return byCode[code]; }
 
-    // ibibles.net 인용 주소. 절 범위가 없으면 장 전체(1-200절)
-    function quoteUrl(code, chapter, from, to) {
-        var range = from ? (to && to !== from ? from + '-' + to : String(from)) : '1-200';
-        return 'https://ibibles.net/quote.php?kor-' + code + '/' + chapter + ':' + range;
-    }
-
     function enRef(code, chapter, from, to) {
         var s = byCode[code].nameEn + ' ' + chapter;
         if (from) s += ':' + from + (to && to !== from ? '-' + to : '');
@@ -53,6 +47,38 @@ var Bible = (function () {
         return fetch('https://bible-api.com/data/' + (translation || 'web') + '/' + byCode[code].usfm + '/' + chapter)
             .then(function (r) { if (!r.ok) throw new Error('bible-api'); return r.json(); })
             .then(function (d) { return d.verses || []; });
+    }
+
+    // 개역한글(저작권 만료) — data/kor/<책>.json, 책 단위로 한 번만 받음
+    var korCache = {};
+    function loadKorean(code) {
+        if (!korCache[code]) {
+            korCache[code] = fetch('data/kor/' + code + '.json')
+                .then(function (r) { if (!r.ok) throw new Error('kor'); return r.json(); })
+                .catch(function (e) { delete korCache[code]; throw e; });
+        }
+        return korCache[code];
+    }
+
+    // 한 장의 본문을 [{ n: 절 번호, t: 본문 }] 로. translation: 'ko' | 'web' | 'kjv'
+    function chapterText(code, chapter, translation) {
+        if (translation === 'ko') {
+            return loadKorean(code).then(function (book) {
+                return (book[chapter - 1] || []).map(function (t, i) { return { n: i + 1, t: t }; })
+                    .filter(function (v) { return v.t; });
+            });
+        }
+        return fetchEnglish(code, chapter, translation).then(function (list) {
+            return list.map(function (v) { return { n: v.verse, t: v.text.trim() }; });
+        });
+    }
+
+    function passageText(p) {
+        return chapterText(p.book, p.chapter, 'ko').then(function (list) {
+            if (!p.from) return list;
+            var to = p.to || p.from;
+            return list.filter(function (v) { return v.n >= p.from && v.n <= to; });
+        });
     }
 
     function label(p) {
@@ -86,5 +112,5 @@ var Bible = (function () {
         return allChapters.slice(start, end);
     }
 
-    return { book: book, quoteUrl: quoteUrl, nivUrl: nivUrl, fetchEnglish: fetchEnglish, enRef: enRef, label: label, step: step, planForDay: planForDay, totalChapters: allChapters.length };
+    return { book: book, chapterText: chapterText, passageText: passageText, nivUrl: nivUrl, fetchEnglish: fetchEnglish, enRef: enRef, label: label, step: step, planForDay: planForDay, totalChapters: allChapters.length };
 })();

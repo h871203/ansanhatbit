@@ -100,9 +100,6 @@
                 <a class="btn niv-btn" id="nivLink" target="_blank" rel="noopener">NIV ↗</a>
             </div>
             <h3 class="passage-title" id="bibleTitle"></h3>
-            <div class="reader" id="koReader">
-                <iframe id="bibleFrame" title="성경 본문" loading="lazy"></iframe>
-            </div>
             <div class="listen-box" id="listenBar" hidden>
                 <div class="segmented" id="voiceSeg" role="tablist" aria-label="듣기 방식">
                     <button data-mode="human" role="tab">🎧 사람 낭독</button>
@@ -122,12 +119,12 @@
                     </select>
                 </div>
             </div>
-            <div class="reader en-reader" id="enReader" hidden></div>
+            <div class="reader text-reader" id="textReader"></div>
             <div class="pager">
                 <button class="btn" id="prevChapter">← 이전 장</button>
                 <button class="btn" id="nextChapter">다음 장 →</button>
             </div>
-            <p class="muted small center" id="bibleSource">본문: 개역한글 (ibibles.net 제공)</p>
+            <p class="muted small center" id="bibleSource"></p>
         </section>
 
         <!-- 목사님 말씀 -->
