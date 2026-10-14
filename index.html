@@ -2,462 +2,236 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>📖 ESV 온라인 성경</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans KR', sans-serif;
-            background: linear-gradient(135deg, #2c3e50 0%, #3d5a73 100%);
-            min-height: 100vh;
-            padding: 20px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-
-        .container {
-            max-width: 900px;
-            width: 100%;
-            background: white;
-            border-radius: 20px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
-            overflow: hidden;
-        }
-
-        .header {
-            background: linear-gradient(135deg, #34495e 0%, #445e75 100%);
-            color: white;
-            padding: 40px;
-            text-align: center;
-        }
-
-        .header h1 {
-            font-size: 2.5rem;
-            margin-bottom: 10px;
-            font-weight: 600;
-        }
-
-        .header p {
-            font-size: 1rem;
-            opacity: 0.9;
-        }
-
-        .search-section {
-            padding: 40px;
-            background: #f8f9fa;
-        }
-
-        .search-controls {
-            display: grid;
-            grid-template-columns: 1fr 100px 100px 150px auto;
-            gap: 15px;
-            margin-bottom: 20px;
-        }
-
-        .form-control {
-            padding: 12px 16px;
-            border: 2px solid #dee2e6;
-            border-radius: 8px;
-            font-size: 16px;
-            background: white;
-            transition: all 0.3s ease;
-        }
-
-        .form-control:focus {
-            outline: none;
-            border-color: #3d5a73;
-        }
-
-        .btn {
-            padding: 12px 24px;
-            border: none;
-            border-radius: 8px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .btn-primary {
-            background: #3d5a73;
-            color: white;
-        }
-
-        .btn-primary:hover {
-            background: #2c3e50;
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(61, 90, 115, 0.3);
-        }
-
-        .btn-secondary {
-            background: white;
-            color: #495057;
-            border: 2px solid #dee2e6;
-        }
-
-        .btn-secondary:hover {
-            background: #f8f9fa;
-            border-color: #adb5bd;
-        }
-
-        .error-message {
-            background: #fff3cd;
-            color: #856404;
-            padding: 12px 16px;
-            border-radius: 8px;
-            border-left: 4px solid #ffc107;
-            display: none;
-        }
-
-        .error-message.show {
-            display: block;
-        }
-
-        .content-section {
-            padding: 40px;
-        }
-
-        .verse-header {
-            background: #e9ecef;
-            padding: 20px;
-            border-radius: 10px;
-            text-align: center;
-            margin-bottom: 30px;
-        }
-
-        .verse-header h2 {
-            color: #2c3e50;
-            font-size: 1.5rem;
-            font-weight: 600;
-        }
-
-        .verse-content {
-            background: white;
-            border-left: 4px solid #3d5a73;
-            padding: 30px;
-            margin-bottom: 30px;
-            min-height: 200px;
-        }
-
-        .verse-number {
-            color: #3d5a73;
-            font-weight: 700;
-            font-size: 1.1rem;
-            margin-right: 8px;
-        }
-
-        .verse-text {
-            color: #2c3e50;
-            font-size: 1.1rem;
-            line-height: 1.8;
-        }
-
-        .bible-frame {
-            width: 100%;
-            border: none;
-            min-height: 400px;
-        }
-
-        .navigation {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 30px 40px;
-            border-top: 2px solid #e9ecef;
-        }
-
-        .book-info {
-            color: #495057;
-            font-weight: 600;
-            font-size: 1rem;
-        }
-
-        @media (max-width: 768px) {
-            .search-controls {
-                grid-template-columns: 1fr;
-            }
-
-            .header h1 {
-                font-size: 2rem;
-            }
-
-            .content-section {
-                padding: 20px;
-            }
-
-            .navigation {
-                flex-direction: column;
-                gap: 15px;
-            }
-
-            .btn {
-                width: 100%;
-            }
-        }
-    </style>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>안산햇빛교회</title>
+    <meta name="description" content="말씀과 기도로 하나 되는 우리 교회 — 안산햇빛교회 성도 앱">
+    <meta name="theme-color" content="#f59e0b">
+    <link rel="manifest" href="manifest.webmanifest">
+    <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="햇빛교회">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <link rel="stylesheet" href="css/app.css">
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>📖 ESV 온라인 성경</h1>
-            <p>하나님의 말씀을 읽고 묵상하세요</p>
+    <header class="topbar">
+        <a href="#home" class="brand">
+            <img src="icons/icon.svg" alt="" width="32" height="32">
+            <span id="churchName">안산햇빛교회</span>
+        </a>
+        <div class="topbar-actions">
+            <button class="icon-btn" id="fontBtn" aria-label="글자 크기 바꾸기">가<small>A</small></button>
+            <a class="icon-btn" href="#church" aria-label="교회 소식과 안내">📢</a>
         </div>
+    </header>
 
-        <div class="search-section">
-            <div class="search-controls">
-                <select id="bookSelect" class="form-control">
-                    <option value="gen">창세기</option>
-                    <option value="exo">출애굽기</option>
-                    <option value="lev">레위기</option>
-                    <option value="num">민수기</option>
-                    <option value="deu">신명기</option>
-                    <option value="jos">여호수아</option>
-                    <option value="judg">사사기</option>
-                    <option value="rut">룻기</option>
-                    <option value="1sa">사무엘상</option>
-                    <option value="2sa">사무엘하</option>
-                    <option value="1ki">열왕기상</option>
-                    <option value="2ki">열왕기하</option>
-                    <option value="1ch">역대상</option>
-                    <option value="2ch">역대하</option>
-                    <option value="ezr">에스라</option>
-                    <option value="neh">느헤미야</option>
-                    <option value="est">에스더</option>
-                    <option value="job">욥기</option>
-                    <option value="psa">시편</option>
-                    <option value="pro">잠언</option>
-                    <option value="ecc">전도서</option>
-                    <option value="son">아가</option>
-                    <option value="isa">이사야</option>
-                    <option value="jer">예레미야</option>
-                    <option value="lam">예레미야애가</option>
-                    <option value="eze">에스겔</option>
-                    <option value="dan">다니엘</option>
-                    <option value="hos">호세아</option>
-                    <option value="joe">요엘</option>
-                    <option value="amo">아모스</option>
-                    <option value="oba">오바댜</option>
-                    <option value="jon">요나</option>
-                    <option value="mic">미가</option>
-                    <option value="nah">나훔</option>
-                    <option value="hab">하박국</option>
-                    <option value="zep">스바냐</option>
-                    <option value="hag">학개</option>
-                    <option value="zec">스가랴</option>
-                    <option value="mal">말라기</option>
-                    <option value="mat">마태복음</option>
-                    <option value="mar">마가복음</option>
-                    <option value="luk">누가복음</option>
-                    <option value="joh">요한복음</option>
-                    <option value="act">사도행전</option>
-                    <option value="rom">로마서</option>
-                    <option value="1co">고린도전서</option>
-                    <option value="2co">고린도후서</option>
-                    <option value="gal">갈라디아서</option>
-                    <option value="eph">에베소서</option>
-                    <option value="phi">빌립보서</option>
-                    <option value="col">골로새서</option>
-                    <option value="1th">데살로니가전서</option>
-                    <option value="2th">데살로니가후서</option>
-                    <option value="1ti">디모데전서</option>
-                    <option value="2ti">디모데후서</option>
-                    <option value="tit">디도서</option>
-                    <option value="phm">빌레몬서</option>
-                    <option value="heb">히브리서</option>
-                    <option value="jas">야고보서</option>
-                    <option value="1pe">베드로전서</option>
-                    <option value="2pe">베드로후서</option>
-                    <option value="1jn">요한일서</option>
-                    <option value="2jn">요한이서</option>
-                    <option value="3jn">요한삼서</option>
-                    <option value="jude" selected>유다서</option>
-                    <option value="rev">요한계시록</option>
-                </select>
-
-                <input type="number" id="chapterInput" class="form-control" value="1" min="1" placeholder="장">
-                <input type="number" id="startVerseInput" class="form-control" value="11" min="1" placeholder="절">
-                <input type="text" id="endVerseInput" class="form-control" placeholder="끝절 (선택)" value="">
-
-                <button class="btn btn-primary" onclick="searchVerse()">읽기</button>
+    <main id="app">
+        <!-- 홈 -->
+        <section class="view" id="view-home">
+            <div class="hero">
+                <p class="hero-date" id="todayLabel"></p>
+                <h1 id="heroTitle">안산햇빛교회</h1>
+                <p class="hero-slogan" id="slogan"></p>
             </div>
 
-            <div id="errorMessage" class="error-message">
-                값없이 의로운자 되었다
-            </div>
-        </div>
+            <a class="card prayer-card" href="#prayer">
+                <div class="card-kicker">🙏 하루 두 번, 교회를 위한 기도</div>
+                <div class="prayer-times" id="homePrayerTimes"></div>
+                <p class="prayer-next" id="prayerNext"></p>
+            </a>
 
-        <div class="content-section">
-            <div class="verse-header">
-                <h2 id="verseTitle">Jude 1:11</h2>
+            <div class="card verse-card">
+                <div class="card-kicker">이번 주 암송 말씀</div>
+                <p class="verse-text" id="memoryText"></p>
+                <p class="verse-ref" id="memoryRef"></p>
             </div>
 
-            <div class="verse-content">
-                <iframe id="bibleFrame" class="bible-frame" src=""></iframe>
+            <div class="grid-2">
+                <a class="tile" href="#bible">
+                    <span class="tile-icon">📖</span>
+                    <strong>성경 읽기</strong>
+                    <span id="homePlan">오늘의 통독</span>
+                </a>
+                <a class="tile" href="#sermon">
+                    <span class="tile-icon">🎙️</span>
+                    <strong>목사님 말씀</strong>
+                    <span id="homeSermon">이번 주 설교</span>
+                </a>
+                <a class="tile" href="#qt">
+                    <span class="tile-icon">✍️</span>
+                    <strong>오늘의 QT</strong>
+                    <span id="homeQt">말씀 묵상</span>
+                </a>
+                <a class="tile" href="#prayer">
+                    <span class="tile-icon">🕊️</span>
+                    <strong>중보기도</strong>
+                    <span>기도 제목</span>
+                </a>
             </div>
-        </div>
 
-        <div class="navigation">
-            <button class="btn btn-secondary" onclick="previousChapter()">← 이전 장</button>
-            <span class="book-info" id="bookInfo">유다서 1장</span>
-            <button class="btn btn-secondary" onclick="nextChapter()">다음 장 →</button>
+            <a class="card" href="#church">
+                <div class="card-kicker">📢 교회 소식</div>
+                <ul class="plain-list" id="homeNews"></ul>
+            </a>
+        </section>
+
+        <!-- 성경 -->
+        <section class="view" id="view-bible" hidden>
+            <h2 class="view-title">성경 읽기</h2>
+
+            <div class="card plan-card">
+                <div class="card-kicker">📅 1년 1독 — 오늘의 통독</div>
+                <div class="plan-list" id="planList"></div>
+                <div class="progress"><div class="progress-bar" id="planBar"></div></div>
+                <p class="muted small" id="planProgress"></p>
+            </div>
+
+            <div class="bible-controls">
+                <select id="bookSelect" aria-label="성경 책"></select>
+                <select id="chapterSelect" aria-label="장"></select>
+            </div>
+            <div class="version-bar">
+                <div class="segmented" role="tablist" aria-label="번역본">
+                    <button data-ver="ko" role="tab">한글</button>
+                    <button data-ver="en" role="tab">English</button>
+                </div>
+                <a class="btn niv-btn" id="nivLink" target="_blank" rel="noopener">NIV ↗</a>
+            </div>
+            <h3 class="passage-title" id="bibleTitle"></h3>
+            <div class="reader" id="koReader">
+                <iframe id="bibleFrame" title="성경 본문" loading="lazy"></iframe>
+            </div>
+            <div class="reader en-reader" id="enReader" hidden></div>
+            <div class="pager">
+                <button class="btn" id="prevChapter">← 이전 장</button>
+                <button class="btn" id="nextChapter">다음 장 →</button>
+            </div>
+            <p class="muted small center" id="bibleSource">본문: 개역한글 (ibibles.net 제공)</p>
+        </section>
+
+        <!-- 목사님 말씀 -->
+        <section class="view" id="view-sermon" hidden>
+            <h2 class="view-title">목사님 말씀</h2>
+            <article class="card" id="sermonDetail"></article>
+            <h3 class="section-title">지난 설교</h3>
+            <ul class="link-list" id="sermonList"></ul>
+        </section>
+
+        <!-- QT -->
+        <section class="view" id="view-qt" hidden>
+            <h2 class="view-title">오늘의 QT</h2>
+            <article class="card" id="qtDetail"></article>
+            <div class="card">
+                <div class="card-kicker">나의 묵상 노트 <span class="muted small">(이 휴대폰에만 저장됩니다)</span></div>
+                <label class="field">묵상 — 오늘 말씀에서 받은 은혜
+                    <textarea id="qtNote" rows="4"></textarea>
+                </label>
+                <label class="field">적용 — 오늘 실천할 한 가지
+                    <textarea id="qtApply" rows="3"></textarea>
+                </label>
+                <label class="field">기도 — 나의 기도문
+                    <textarea id="qtPrayer" rows="3"></textarea>
+                </label>
+                <button class="btn btn-primary block" id="qtSave">저장하기</button>
+                <p class="muted small center" id="qtSaved"></p>
+            </div>
+            <h3 class="section-title">지난 QT</h3>
+            <ul class="link-list" id="qtList"></ul>
+        </section>
+
+        <!-- 기도 -->
+        <section class="view" id="view-prayer" hidden>
+            <h2 class="view-title">기도</h2>
+
+            <div class="card alarm-card">
+                <div class="card-kicker">⏰ 기도 알림</div>
+                <div class="prayer-times" id="prayerTimesBig"></div>
+                <p class="muted" id="prayerMessage"></p>
+                <button class="btn btn-primary block" id="prayedBtn">🙏 기도했어요</button>
+                <p class="muted small center" id="prayedInfo"></p>
+            </div>
+
+            <div class="card">
+                <div class="card-kicker">알림 받는 방법</div>
+                <p class="small">휴대폰이 잠겨 있어도 꼭 울리게 하려면 <strong>캘린더 알림</strong>을 한 번 등록해 주세요. 매일 오전·오후 10시에 알림이 옵니다.</p>
+                <div class="btn-col">
+                    <a class="btn block" id="icsLink" href="prayer-alarm.ics">📅 아이폰·삼성 캘린더에 추가</a>
+                    <a class="btn block" id="gcalAm" target="_blank" rel="noopener">구글 캘린더 — 오전 10시</a>
+                    <a class="btn block" id="gcalPm" target="_blank" rel="noopener">구글 캘린더 — 오후 10시</a>
+                    <button class="btn block" id="notifyBtn">🔔 앱 알림 켜기</button>
+                </div>
+                <p class="muted small" id="notifyInfo">앱 알림은 앱이 열려 있을 때 기도 시간을 알려 드립니다.</p>
+            </div>
+
+            <div class="card">
+                <div class="card-kicker">교회를 위한 기도</div>
+                <ol class="prayer-list" id="churchPrayers"></ol>
+                <div class="card-kicker">이웃과 나라를 위한 기도</div>
+                <ol class="prayer-list" id="communityPrayers"></ol>
+                <p class="muted small" id="prayersUpdated"></p>
+            </div>
+
+            <div class="card">
+                <div class="card-kicker">나의 기도 제목 <span class="muted small">(나만 보기)</span></div>
+                <form class="inline-form" id="myPrayerForm">
+                    <input id="myPrayerInput" placeholder="기도 제목을 적어 주세요" maxlength="200">
+                    <button class="btn btn-primary">추가</button>
+                </form>
+                <ul class="my-prayers" id="myPrayers"></ul>
+            </div>
+        </section>
+
+        <!-- 교회 -->
+        <section class="view" id="view-church" hidden>
+            <h2 class="view-title">교회 소식 · 안내</h2>
+            <div class="card">
+                <div class="card-kicker">📢 공지사항</div>
+                <div id="noticeList"></div>
+            </div>
+            <div class="card">
+                <div class="card-kicker">📅 다가오는 일정</div>
+                <ul class="event-list" id="eventList"></ul>
+            </div>
+            <div class="card">
+                <div class="card-kicker">⛪ 예배 안내</div>
+                <table class="worship-table" id="worshipTable"></table>
+            </div>
+            <div class="card">
+                <div class="card-kicker">📍 오시는 길</div>
+                <p id="churchAddress"></p>
+                <div class="btn-col" id="churchLinks"></div>
+            </div>
+            <div class="card">
+                <div class="card-kicker">📲 앱 설치 방법</div>
+                <p class="small"><strong>갤럭시(크롬)</strong>: 오른쪽 위 ⋮ → <em>홈 화면에 추가</em> 또는 <em>앱 설치</em></p>
+                <p class="small"><strong>아이폰(사파리)</strong>: 아래 공유 버튼 ⬆ → <em>홈 화면에 추가</em></p>
+                <button class="btn block" id="installBtn" hidden>홈 화면에 설치하기</button>
+            </div>
+        </section>
+    </main>
+
+    <nav class="tabbar" aria-label="메뉴">
+        <a href="#home" data-tab="home"><span>🏠</span>홈</a>
+        <a href="#bible" data-tab="bible"><span>📖</span>성경</a>
+        <a href="#sermon" data-tab="sermon"><span>🎙️</span>말씀</a>
+        <a href="#qt" data-tab="qt"><span>✍️</span>QT</a>
+        <a href="#prayer" data-tab="prayer"><span>🙏</span>기도</a>
+    </nav>
+
+    <div class="overlay" id="prayerOverlay" hidden>
+        <div class="overlay-box">
+            <div class="overlay-icon">🙏</div>
+            <h2 id="overlayTitle">기도 시간입니다</h2>
+            <p id="overlayMessage"></p>
+            <ol class="prayer-list" id="overlayPrayers"></ol>
+            <button class="btn btn-primary block" id="overlayPrayed">아멘, 기도했어요</button>
+            <button class="btn block" id="overlayClose">닫기</button>
         </div>
     </div>
 
-    <script>
-        var bibleBooks = {
-            'gen': { name: '창세기', nameEn: 'Genesis', chapters: 50 },
-            'exo': { name: '출애굽기', nameEn: 'Exodus', chapters: 40 },
-            'lev': { name: '레위기', nameEn: 'Leviticus', chapters: 27 },
-            'num': { name: '민수기', nameEn: 'Numbers', chapters: 36 },
-            'deu': { name: '신명기', nameEn: 'Deuteronomy', chapters: 34 },
-            'jos': { name: '여호수아', nameEn: 'Joshua', chapters: 24 },
-            'judg': { name: '사사기', nameEn: 'Judges', chapters: 21 },
-            'rut': { name: '룻기', nameEn: 'Ruth', chapters: 4 },
-            '1sa': { name: '사무엘상', nameEn: '1 Samuel', chapters: 31 },
-            '2sa': { name: '사무엘하', nameEn: '2 Samuel', chapters: 24 },
-            '1ki': { name: '열왕기상', nameEn: '1 Kings', chapters: 22 },
-            '2ki': { name: '열왕기하', nameEn: '2 Kings', chapters: 25 },
-            '1ch': { name: '역대상', nameEn: '1 Chronicles', chapters: 29 },
-            '2ch': { name: '역대하', nameEn: '2 Chronicles', chapters: 36 },
-            'ezr': { name: '에스라', nameEn: 'Ezra', chapters: 10 },
-            'neh': { name: '느헤미야', nameEn: 'Nehemiah', chapters: 13 },
-            'est': { name: '에스더', nameEn: 'Esther', chapters: 10 },
-            'job': { name: '욥기', nameEn: 'Job', chapters: 42 },
-            'psa': { name: '시편', nameEn: 'Psalms', chapters: 150 },
-            'pro': { name: '잠언', nameEn: 'Proverbs', chapters: 31 },
-            'ecc': { name: '전도서', nameEn: 'Ecclesiastes', chapters: 12 },
-            'son': { name: '아가', nameEn: 'Song of Solomon', chapters: 8 },
-            'isa': { name: '이사야', nameEn: 'Isaiah', chapters: 66 },
-            'jer': { name: '예레미야', nameEn: 'Jeremiah', chapters: 52 },
-            'lam': { name: '예레미야애가', nameEn: 'Lamentations', chapters: 5 },
-            'eze': { name: '에스겔', nameEn: 'Ezekiel', chapters: 48 },
-            'dan': { name: '다니엘', nameEn: 'Daniel', chapters: 12 },
-            'hos': { name: '호세아', nameEn: 'Hosea', chapters: 14 },
-            'joe': { name: '요엘', nameEn: 'Joel', chapters: 3 },
-            'amo': { name: '아모스', nameEn: 'Amos', chapters: 9 },
-            'oba': { name: '오바댜', nameEn: 'Obadiah', chapters: 1 },
-            'jon': { name: '요나', nameEn: 'Jonah', chapters: 4 },
-            'mic': { name: '미가', nameEn: 'Micah', chapters: 7 },
-            'nah': { name: '나훔', nameEn: 'Nahum', chapters: 3 },
-            'hab': { name: '하박국', nameEn: 'Habakkuk', chapters: 3 },
-            'zep': { name: '스바냐', nameEn: 'Zephaniah', chapters: 3 },
-            'hag': { name: '학개', nameEn: 'Haggai', chapters: 2 },
-            'zec': { name: '스가랴', nameEn: 'Zechariah', chapters: 14 },
-            'mal': { name: '말라기', nameEn: 'Malachi', chapters: 4 },
-            'mat': { name: '마태복음', nameEn: 'Matthew', chapters: 28 },
-            'mar': { name: '마가복음', nameEn: 'Mark', chapters: 16 },
-            'luk': { name: '누가복음', nameEn: 'Luke', chapters: 24 },
-            'joh': { name: '요한복음', nameEn: 'John', chapters: 21 },
-            'act': { name: '사도행전', nameEn: 'Acts', chapters: 28 },
-            'rom': { name: '로마서', nameEn: 'Romans', chapters: 16 },
-            '1co': { name: '고린도전서', nameEn: '1 Corinthians', chapters: 16 },
-            '2co': { name: '고린도후서', nameEn: '2 Corinthians', chapters: 13 },
-            'gal': { name: '갈라디아서', nameEn: 'Galatians', chapters: 6 },
-            'eph': { name: '에베소서', nameEn: 'Ephesians', chapters: 6 },
-            'phi': { name: '빌립보서', nameEn: 'Philippians', chapters: 4 },
-            'col': { name: '골로새서', nameEn: 'Colossians', chapters: 4 },
-            '1th': { name: '데살로니가전서', nameEn: '1 Thessalonians', chapters: 5 },
-            '2th': { name: '데살로니가후서', nameEn: '2 Thessalonians', chapters: 3 },
-            '1ti': { name: '디모데전서', nameEn: '1 Timothy', chapters: 6 },
-            '2ti': { name: '디모데후서', nameEn: '2 Timothy', chapters: 4 },
-            'tit': { name: '디도서', nameEn: 'Titus', chapters: 3 },
-            'phm': { name: '빌레몬서', nameEn: 'Philemon', chapters: 1 },
-            'heb': { name: '히브리서', nameEn: 'Hebrews', chapters: 13 },
-            'jas': { name: '야고보서', nameEn: 'James', chapters: 5 },
-            '1pe': { name: '베드로전서', nameEn: '1 Peter', chapters: 5 },
-            '2pe': { name: '베드로후서', nameEn: '2 Peter', chapters: 3 },
-            '1jn': { name: '요한일서', nameEn: '1 John', chapters: 5 },
-            '2jn': { name: '요한이서', nameEn: '2 John', chapters: 1 },
-            '3jn': { name: '요한삼서', nameEn: '3 John', chapters: 1 },
-            'jude': { name: '유다서', nameEn: 'Jude', chapters: 1 },
-            'rev': { name: '요한계시록', nameEn: 'Revelation', chapters: 22 }
-        };
-
-        var currentBook = 'jude';
-        var currentChapter = 1;
-        var currentVerse = 11;
-
-        window.onload = function() {
-            searchVerse();
-            
-            document.getElementById('bookSelect').addEventListener('change', function() {
-                var bookCode = document.getElementById('bookSelect').value;
-                var maxChapters = bibleBooks[bookCode].chapters;
-                var currentChapterValue = parseInt(document.getElementById('chapterInput').value);
-                if (currentChapterValue > maxChapters) {
-                    document.getElementById('chapterInput').value = 1;
-                }
-            });
-        };
-
-        function searchVerse() {
-            var book = document.getElementById('bookSelect').value;
-            var chapter = parseInt(document.getElementById('chapterInput').value);
-            var startVerse = parseInt(document.getElementById('startVerseInput').value);
-            var endVerse = document.getElementById('endVerseInput').value;
-
-            currentBook = book;
-            currentChapter = chapter;
-            currentVerse = startVerse;
-
-            var bookData = bibleBooks[book];
-            
-            var verseRange;
-            if (endVerse && endVerse.trim() !== '') {
-                verseRange = startVerse + '-' + endVerse;
-            } else {
-                verseRange = startVerse.toString();
-            }
-            
-            var reference = 'kor-' + book + '/' + chapter + ':' + verseRange;
-            var url = 'https://ibibles.net/quote.php?' + reference;
-            
-            document.getElementById('verseTitle').textContent = bookData.nameEn + ' ' + chapter + ':' + verseRange;
-            document.getElementById('bookInfo').textContent = bookData.name + ' ' + chapter + '장';
-            document.getElementById('bibleFrame').src = url;
-            
-            document.getElementById('errorMessage').style.display = 'none';
-        }
-
-        function previousChapter() {
-            if (currentChapter > 1) {
-                currentChapter--;
-            } else {
-                var bookKeys = Object.keys(bibleBooks);
-                var currentIndex = bookKeys.indexOf(currentBook);
-                if (currentIndex > 0) {
-                    currentBook = bookKeys[currentIndex - 1];
-                    currentChapter = bibleBooks[currentBook].chapters;
-                }
-            }
-            updateDisplay();
-        }
-
-        function nextChapter() {
-            if (currentChapter < bibleBooks[currentBook].chapters) {
-                currentChapter++;
-            } else {
-                var bookKeys = Object.keys(bibleBooks);
-                var currentIndex = bookKeys.indexOf(currentBook);
-                if (currentIndex < bookKeys.length - 1) {
-                    currentBook = bookKeys[currentIndex + 1];
-                    currentChapter = 1;
-                }
-            }
-            updateDisplay();
-        }
-
-        function updateDisplay() {
-            document.getElementById('bookSelect').value = currentBook;
-            document.getElementById('chapterInput').value = currentChapter;
-            searchVerse();
-        }
-    </script>
+    <script src="js/bible.js"></script>
+    <script src="js/app.js"></script>
 </body>
 </html>
