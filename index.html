@@ -103,6 +103,14 @@
             <div class="reader" id="koReader">
                 <iframe id="bibleFrame" title="성경 본문" loading="lazy"></iframe>
             </div>
+            <div class="listen-bar" id="listenBar" hidden>
+                <button class="btn btn-primary" id="listenBtn">🔊 듣기</button>
+                <select id="listenRate" aria-label="읽기 속도">
+                    <option value="0.8">천천히</option>
+                    <option value="1" selected>보통</option>
+                    <option value="1.2">빠르게</option>
+                </select>
+            </div>
             <div class="reader en-reader" id="enReader" hidden></div>
             <div class="pager">
                 <button class="btn" id="prevChapter">← 이전 장</button>

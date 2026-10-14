@@ -22,8 +22,10 @@ var BIBLE_BOOKS = [
 var Bible = (function () {
     var byCode = {};
     var allChapters = []; // 1189장 전체를 순서대로
+    // 영어 본문 API(bible-api.com)용 표준 책 코드
+    var USFM = 'GEN EXO LEV NUM DEU JOS JDG RUT 1SA 2SA 1KI 2KI 1CH 2CH EZR NEH EST JOB PSA PRO ECC SNG ISA JER LAM EZK DAN HOS JOL AMO OBA JON MIC NAM HAB ZEP HAG ZEC MAL MAT MRK LUK JHN ACT ROM 1CO 2CO GAL EPH PHP COL 1TH 2TH 1TI 2TI TIT PHM HEB JAS 1PE 2PE 1JN 2JN 3JN JUD REV'.split(' ');
     BIBLE_BOOKS.forEach(function (b, i) {
-        byCode[b[0]] = { code: b[0], name: b[1], chapters: b[2], nameEn: b[3], index: i };
+        byCode[b[0]] = { code: b[0], name: b[1], chapters: b[2], nameEn: b[3], usfm: USFM[i], index: i };
         for (var c = 1; c <= b[2]; c++) allChapters.push({ book: b[0], chapter: c });
     });
 
@@ -46,9 +48,9 @@ var Bible = (function () {
         return 'https://www.biblegateway.com/passage/?version=NIV&search=' + encodeURIComponent(enRef(code, chapter, from, to));
     }
 
-    // 영어 본문(WEB, 퍼블릭 도메인) — bible-api.com
-    function fetchEnglish(code, chapter, from, to) {
-        return fetch('https://bible-api.com/' + encodeURIComponent(enRef(code, chapter, from, to)) + '?translation=web')
+    // 영어 본문(WEB, 퍼블릭 도메인) — bible-api.com. 장 전체를 받음 (유다서처럼 1장짜리 책도 정확히)
+    function fetchEnglish(code, chapter) {
+        return fetch('https://bible-api.com/data/web/' + byCode[code].usfm + '/' + chapter)
             .then(function (r) { if (!r.ok) throw new Error('bible-api'); return r.json(); })
             .then(function (d) { return d.verses || []; });
     }

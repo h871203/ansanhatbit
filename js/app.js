@@ -67,6 +67,7 @@
             a.classList.toggle('active', a.dataset.tab === name);
         });
         if (name === 'bible') showChapter(); // iframe은 성경 화면을 열 때 불러옴
+        else if (typeof stopSpeech === 'function') stopSpeech();
         window.scrollTo(0, 0);
     }
     window.addEventListener('hashchange', route);
@@ -286,6 +287,76 @@
 
     var version = store.get('bibleVersion', 'ko');
     var shownKey = null, shownEnKey = null;
+    var enVerses = [];
+
+    // ---------- 영어 듣기 (휴대폰 내장 음성, 저작권 문제 없음) ----------
+    var canSpeak = 'speechSynthesis' in window && 'SpeechSynthesisUtterance' in window;
+    var speaking = false, speakToken = 0, continueListening = false;
+    $('listenRate').value = String(store.get('listenRate', 1));
+
+    function englishVoice() {
+        var voices = speechSynthesis.getVoices().filter(function (v) { return /^en[-_]/i.test(v.lang); });
+        var preferred = ['Google US English', 'Samantha', 'Microsoft Aria', 'Microsoft Jenny', 'Daniel', 'Karen'];
+        for (var i = 0; i < preferred.length; i++) {
+            for (var j = 0; j < voices.length; j++) if (voices[j].name.indexOf(preferred[i]) === 0) return voices[j];
+        }
+        return voices.filter(function (v) { return /^en[-_]US/i.test(v.lang); })[0] || voices[0] || null;
+    }
+
+    function highlightVerse(i) {
+        var box = $('enReader');
+        var old = box.querySelector('.speaking');
+        if (old) old.classList.remove('speaking');
+        var p = i >= 0 && box.querySelector('[data-i="' + i + '"]');
+        if (p) { p.classList.add('speaking'); p.scrollIntoView({ block: 'center', behavior: 'smooth' }); }
+    }
+
+    function speakFrom(i) {
+        if (!enVerses.length) return;
+        if (i >= enVerses.length) {
+            // 장이 끝나면 다음 장으로 이어서 듣기
+            var next = Bible.step(pos.book, pos.chapter, 1);
+            stopSpeech();
+            if (next) { continueListening = true; goTo(next.book, next.chapter); }
+            return;
+        }
+        speaking = true;
+        var token = speakToken;
+        $('listenBtn').textContent = '⏹ 멈추기';
+        highlightVerse(i);
+        var u = new SpeechSynthesisUtterance(enVerses[i].text.trim());
+        u.lang = 'en-US';
+        u.rate = +$('listenRate').value;
+        var voice = englishVoice();
+        if (voice) u.voice = voice;
+        u.onend = function () { if (speaking && token === speakToken) speakFrom(i + 1); };
+        u.onerror = function () { if (token === speakToken) stopSpeech(); };
+        speechSynthesis.speak(u);
+    }
+
+    function stopSpeech() {
+        speaking = false;
+        speakToken++;
+        if (canSpeak) speechSynthesis.cancel();
+        highlightVerse(-1);
+        $('listenBtn').textContent = '🔊 듣기';
+    }
+
+    $('listenBtn').addEventListener('click', function () {
+        if (speaking) { stopSpeech(); return; }
+        speakToken++;
+        speakFrom(0);
+    });
+    $('listenRate').addEventListener('change', function () { store.set('listenRate', +this.value); });
+    $('enReader').addEventListener('click', function (e) {
+        // 절을 누르면 그 절부터 읽기
+        var p = e.target.closest('[data-i]');
+        if (!p || !canSpeak) return;
+        stopSpeech();
+        speakToken++;
+        speakFrom(+p.dataset.i);
+    });
+    if (canSpeak) speechSynthesis.getVoices(); // 일부 브라우저는 목록을 미리 불러와야 함
 
     function renderEnglish() {
         var key = pos.book + pos.chapter;
@@ -293,12 +364,16 @@
         shownEnKey = key;
         var box = $('enReader');
         box.innerHTML = '<p class="muted center">Loading…</p>';
+        enVerses = [];
         Bible.fetchEnglish(pos.book, pos.chapter).then(function (verses) {
             if (shownEnKey !== key) return; // 그 사이 다른 장으로 이동함
-            box.innerHTML = verses.map(function (v) {
-                return '<p><sup>' + v.verse + '</sup> ' + esc(v.text.trim()) + '</p>';
+            enVerses = verses;
+            box.innerHTML = verses.map(function (v, i) {
+                return '<p data-i="' + i + '"><sup>' + v.verse + '</sup> ' + esc(v.text.trim()) + '</p>';
             }).join('');
+            if (continueListening) { continueListening = false; speakFrom(0); }
         }).catch(function () {
+            continueListening = false;
             if (shownEnKey !== key) return;
             shownEnKey = null;
             box.innerHTML = '<p class="muted center">영어 본문을 불러오지 못했습니다. 잠시 후 다시 시도하거나 NIV 버튼을 눌러 주세요.</p>';
@@ -315,8 +390,10 @@
             b.classList.toggle('active', b.dataset.ver === version);
             b.setAttribute('aria-selected', b.dataset.ver === version);
         });
+        if (shownEnKey !== pos.book + pos.chapter || version !== 'en') stopSpeech();
         $('koReader').hidden = version !== 'ko';
         $('enReader').hidden = version !== 'en';
+        $('listenBar').hidden = version !== 'en' || !canSpeak;
         $('bibleSource').textContent = version === 'en'
             ? 'English: World English Bible (퍼블릭 도메인) · NIV는 BibleGateway에서 열립니다'
             : '본문: 개역한글 (ibibles.net 제공)';
