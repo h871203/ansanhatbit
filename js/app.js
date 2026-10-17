@@ -293,20 +293,79 @@
 
     // ---------- 듣기 (휴대폰 내장 음성: 한글·영어) ----------
     var canSpeak = 'speechSynthesis' in window && 'SpeechSynthesisUtterance' in window;
-    var speaking = false, speakToken = 0, continueListening = false;
+    var speaking = false, speakToken = 0, continueListening = false, speakingIndex = 0;
     $('listenRate').value = String(store.get('listenRate', 1));
 
-    var PREFERRED_VOICES = {
-        ko: ['Google 한국의', 'Yuna', 'Microsoft SunHi', 'Microsoft Heami', 'Samsung'],
-        en: ['Google US English', 'Samantha', 'Microsoft Aria', 'Microsoft Jenny', 'Daniel', 'Karen']
-    };
+    // 자연스러운 목소리일수록 높은 점수 (기기마다 들어 있는 음성이 다름)
+    function voiceScore(v) {
+        var n = v.name;
+        var score = 0;
+        if (/Natural|Neural|Online|Premium|Enhanced|향상|고품질|프리미엄/i.test(n)) score += 50;
+        if (/^Google/i.test(n)) score += 30;
+        if (/Samsung|삼성/i.test(n)) score += 25;
+        if (/Yuna|유나|SunHi|InJoon|Hyunsu|Ava|Samantha|Aria|Jenny|Guy|Siri/i.test(n)) score += 15;
+        if (/Heami|eSpeak|Zira|David|Mark|compact|Compact/i.test(n)) score -= 30; // 기계음이 강한 기본 음성
+        if (!v.localService) score += 5; // 온라인 음성이 대체로 더 자연스러움
+        return score;
+    }
+    function voicesFor(lang) {
+        if (!canSpeak) return [];
+        return speechSynthesis.getVoices()
+            .filter(function (v) { return v.lang.replace('_', '-').toLowerCase().indexOf(lang) === 0; })
+            .sort(function (a, b) { return voiceScore(b) - voiceScore(a); });
+    }
+    function currentLang() { return version === 'ko' ? 'ko' : 'en'; }
     function pickVoice(lang) {
-        var voices = speechSynthesis.getVoices().filter(function (v) { return v.lang.toLowerCase().indexOf(lang) === 0; });
-        var preferred = PREFERRED_VOICES[lang];
-        for (var i = 0; i < preferred.length; i++) {
-            for (var j = 0; j < voices.length; j++) if (voices[j].name.indexOf(preferred[i]) === 0) return voices[j];
+        var list = voicesFor(lang);
+        var saved = store.get('voice-' + lang, '');
+        for (var i = 0; i < list.length; i++) if (list[i].voiceURI === saved) return list[i];
+        return list[0] || null;
+    }
+    function fillVoiceSelect() {
+        var lang = currentLang();
+        var list = voicesFor(lang);
+        var chosen = pickVoice(lang);
+        $('voiceSelect').innerHTML = list.map(function (v, i) {
+            var label = v.name.replace(/\s*\((Korean|English)[^)]*\)/i, '').replace(/^Microsoft /, '');
+            return '<option value="' + esc(v.voiceURI) + '">' + (i === 0 ? '⭐ ' : '') + esc(label) + '</option>';
+        }).join('') || '<option value="">기본 목소리</option>';
+        if (chosen) $('voiceSelect').value = chosen.voiceURI;
+        $('voiceSelect').hidden = list.length < 2;
+        // 자연스러운 음성이 하나도 없으면 설치 방법 안내
+        var good = list.some(function (v) { return voiceScore(v) >= 20; });
+        var ua = navigator.userAgent;
+        var tip = '';
+        if (!good && lang === 'ko') {
+            tip = /iPhone|iPad|Mac/i.test(ua)
+                ? '더 자연스러운 목소리: 설정 → 손쉬운 사용 → 읽기 및 말하기 → 음성 → 한국어 → "유나(향상됨)" 내려받기'
+                : /Android/i.test(ua)
+                    ? '더 자연스러운 목소리: 설정 → 일반 → 텍스트 음성 변환 → "Google 음성 인식 및 합성" 선택 후 한국어 음성 설치'
+                    : '더 자연스러운 목소리는 Microsoft Edge 브라우저나 휴대폰에서 들을 수 있습니다';
         }
-        return voices[0] || null;
+        $('voiceTip').textContent = tip;
+        $('voiceTip').hidden = !tip;
+    }
+    if (canSpeak && 'onvoiceschanged' in speechSynthesis) {
+        speechSynthesis.addEventListener('voiceschanged', fillVoiceSelect);
+    }
+    $('voiceSelect').addEventListener('change', function () {
+        store.set('voice-' + currentLang(), this.value);
+        if (speaking) { var i = speakingIndex; stopSpeech(); speakToken++; speakFrom(i); }
+    });
+
+    // 개역한글은 문장부호가 거의 없어 기계처럼 이어 읽게 됨 → 쉼표·마침표를 넣어 자연스럽게 쉬도록
+    var SPEECH_VERBS = /(가라사대|가로되|이르시되|이르되|말하되|대답하되|대답하여 가로되|여짜오되|하시되|외치되|고하되|물어 가로되|부르짖되|기도하되)(?=\s)/g;
+    function naturalize(text, lang) {
+        var t = text.trim();
+        if (lang === 'ko') {
+            t = t.replace(/\s*!\s*/g, '! ')
+                .replace(SPEECH_VERBS, '$1,')
+                .replace(/(하매|하니|하므로|하였으나|하였더니|하거늘|하시매|하시니|하시므로|이요|이며|하고|하며)(?=\s)/g, '$1,');
+        }
+        if (!/[.!?,;:'"”’)]$/.test(t)) {
+            t += lang === 'ko' && !/(라|다|니라|도다|로다|요|까|라\)|소서|세요|이니라)$/.test(t) ? ',' : '.';
+        }
+        return t;
     }
 
     function highlightVerse(i) {
@@ -329,11 +388,14 @@
         speaking = true;
         var token = speakToken;
         $('listenBtn').textContent = '⏹ 멈추기';
+        speakingIndex = i;
         highlightVerse(i);
-        var u = new SpeechSynthesisUtterance(verses[i].t);
-        u.lang = version === 'ko' ? 'ko-KR' : 'en-US';
+        var lang = currentLang();
+        var u = new SpeechSynthesisUtterance(naturalize(verses[i].t, lang));
+        var voice = pickVoice(lang);
+        u.lang = voice ? voice.lang : (lang === 'ko' ? 'ko-KR' : 'en-US');
         u.rate = +$('listenRate').value;
-        var voice = pickVoice(version === 'ko' ? 'ko' : 'en');
+        u.pitch = 1;
         if (voice) u.voice = voice;
         u.onend = function () { if (speaking && token === speakToken) speakFrom(i + 1); };
         u.onerror = function () { if (token === speakToken) stopSpeech(); };
@@ -391,6 +453,8 @@
         $('humanPanel').hidden = !human;
         $('noHumanMsg').hidden = !(en && voiceMode === 'human' && !seg);
         $('ttsPanel').hidden = human || !canSpeak;
+        $('voiceTip').hidden = true;
+        if (!human && canSpeak) fillVoiceSelect();
         $('listenBar').hidden = !en && !canSpeak;
         var audio = $('kjvAudio');
         if (!human) { audio.pause(); return; }
