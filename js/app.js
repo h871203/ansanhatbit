@@ -631,15 +631,25 @@
         var video = s.youtubeId
             ? '<div class="video"><iframe src="https://www.youtube-nocookie.com/embed/' + encodeURIComponent(s.youtubeId) +
               '" title="설교 영상" allow="encrypted-media; picture-in-picture" allowfullscreen loading="lazy"></iframe></div>'
-            : '<div class="video-empty">🎬 설교 영상 준비 중</div>';
+            : '';
+        var passages = s.passages || (s.passage ? [s.passage] : []);
+        function para(text) { return text ? '<p class="sermon-text">' + esc(text) + '</p>' : ''; }
+        function pointList(points) {
+            return points && points.length ? '<ol class="prayer-list">' +
+                points.map(function (p) { return '<li>' + esc(p) + '</li>'; }).join('') + '</ol>' : '';
+        }
         $('sermonDetail').innerHTML =
             '<div class="card-kicker">' + (i === 0 ? '이번 주 말씀 · ' : '') + koDate(s.date) + '</div>' +
             '<h3 class="sermon-title">' + esc(s.title) + '</h3>' +
-            '<p class="muted">' + esc(s.preacher || '') + '</p>' +
-            video + passageBlock(s.passage) +
-            (s.summary ? '<p>' + esc(s.summary) + '</p>' : '') +
-            (s.points && s.points.length ? '<div class="card-kicker">핵심 말씀</div><ol class="prayer-list">' +
-                s.points.map(function (p) { return '<li>' + esc(p) + '</li>'; }).join('') + '</ol>' : '');
+            (s.preacher ? '<p class="muted">' + esc(s.preacher) + '</p>' : '') +
+            '<p class="verse-ref">' + passages.map(function (p) { return esc(Bible.label(p)); }).join(' · ') + '</p>' +
+            video + passages.map(passageBlock).join('') +
+            para(s.intro || s.summary) +
+            (s.sections || []).map(function (sec) {
+                return '<div class="sermon-section"><h4>' + esc(sec.title) + '</h4>' + pointList(sec.points) + para(sec.body) + '</div>';
+            }).join('') +
+            (s.points && s.points.length ? '<div class="card-kicker">핵심 말씀</div>' + pointList(s.points) : '') +
+            (s.conclusion ? '<div class="sermon-conclusion">' + para(s.conclusion) + '</div>' : '');
         fillPassages($('sermonDetail'));
         $('sermonList').innerHTML = list.map(function (x, j) {
             return '<li><button class="' + (j === i ? 'active' : '') + '" data-i="' + j + '"><span>' + esc(x.title) +
@@ -666,6 +676,9 @@
     function renderQt(item) {
         if (!item) { $('qtDetail').innerHTML = '<p class="muted">등록된 QT가 없습니다.</p>'; return; }
         qtDate = item.date;
+        var intro = data.qt && data.qt.intro;
+        $('qtIntro').hidden = !intro;
+        $('qtIntroText').textContent = intro || '';
         $('qtDetail').innerHTML =
             '<div class="card-kicker">' + koDate(item.date) + '</div>' +
             '<h3 class="sermon-title">' + esc(item.title) + '</h3>' +

@@ -1,5 +1,5 @@
 // 앱 화면은 오프라인에서도 열리도록 저장하고, 교회 데이터(data/*.json)는 항상 새로 받아 옵니다.
-var CACHE = 'hatbit-v7';
+var CACHE = 'hatbit-v8';
 var SHELL = [
     './', 'index.html', 'css/app.css', 'js/bible.js', 'js/app.js', 'manifest.webmanifest',
     'icons/icon.svg', 'icons/icon-192.png', 'icons/icon-512.png',
