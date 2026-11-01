@@ -37,10 +37,11 @@ var Bible = (function () {
         return s;
     }
 
-    // ESV — Crossway ESV API (교회·비영리 무료, api.esv.org 키 필요). 키가 없으면 WEB 으로 대신 보여 줌
-    var esvKey = '';
-    function setEsvKey(key) { esvKey = (key || '').trim(); }
-    function hasEsv() { return !!esvKey; }
+    // ESV — Crossway ESV API (교회·비영리 무료). 키는 공개 저장소에 두지 않고 Cloudflare Worker(tools/esv-worker.js)가
+    // 비밀로 보관해 대신 요청함. 중계 주소가 없으면 WEB 으로 대신 보여 줌
+    var esvProxy = '';
+    function setEsvProxy(url) { esvProxy = (url || '').trim().replace(/\/+$/, ''); }
+    function hasEsv() { return !!esvProxy; }
     var ESV_NOTICE = 'Scripture quotations are from the ESV® Bible (The Holy Bible, English Standard Version®), © 2001 by Crossway, ' +
         'a publishing ministry of Good News Publishers. Used by permission. All rights reserved.';
 
@@ -49,7 +50,7 @@ var Bible = (function () {
             '&include-passage-references=false&include-verse-numbers=true&include-first-verse-numbers=true' +
             '&include-footnotes=false&include-footnote-body=false&include-headings=false&include-short-copyright=false' +
             '&include-selahs=true&indent-paragraphs=0&indent-poetry=false&indent-declares=0&indent-psalm-doxology=0';
-        return fetch('https://api.esv.org/v3/passage/text/?' + q, { headers: { Authorization: 'Token ' + esvKey } })
+        return fetch(esvProxy + '/?' + q)
             .then(function (r) { if (!r.ok) throw new Error('esv'); return r.json(); })
             .then(function (d) {
                 // "[16] For God so loved ... [17] For God did not ..." → 절 단위로 나눔
@@ -135,5 +136,5 @@ var Bible = (function () {
         return allChapters.slice(start, end);
     }
 
-    return { book: book, chapterText: chapterText, passageText: passageText, setEsvKey: setEsvKey, hasEsv: hasEsv, ESV_NOTICE: ESV_NOTICE, fetchEnglish: fetchEnglish, enRef: enRef, label: label, step: step, planForDay: planForDay, totalChapters: allChapters.length };
+    return { book: book, chapterText: chapterText, passageText: passageText, setEsvProxy: setEsvProxy, hasEsv: hasEsv, ESV_NOTICE: ESV_NOTICE, fetchEnglish: fetchEnglish, enRef: enRef, label: label, step: step, planForDay: planForDay, totalChapters: allChapters.length };
 })();

@@ -788,7 +788,7 @@
     fillBookSelect();
     Promise.all(['church', 'sermons', 'qt', 'prayers', 'news', 'audio-kjv'].map(loadJson)).then(function (res) {
         data = { church: res[0], sermons: res[1], qt: res[2], prayers: res[3], news: res[4], audio: res[5] };
-        Bible.setEsvKey(data.church && data.church.esvApiKey);
+        Bible.setEsvProxy(data.church && data.church.esvProxy);
         renderHome();
         renderPrayerTimes();
         renderPrayed();
