@@ -37,9 +37,29 @@ var Bible = (function () {
         return s;
     }
 
-    // NIV는 저작권(Biblica) 때문에 앱에 넣지 않고 BibleGateway 공식 페이지로 연결
-    function nivUrl(code, chapter, from, to) {
-        return 'https://www.biblegateway.com/passage/?version=NIV&search=' + encodeURIComponent(enRef(code, chapter, from, to));
+    // ESV — Crossway ESV API (교회·비영리 무료, api.esv.org 키 필요). 키가 없으면 WEB 으로 대신 보여 줌
+    var esvKey = '';
+    function setEsvKey(key) { esvKey = (key || '').trim(); }
+    function hasEsv() { return !!esvKey; }
+    var ESV_NOTICE = 'Scripture quotations are from the ESV® Bible (The Holy Bible, English Standard Version®), © 2001 by Crossway, ' +
+        'a publishing ministry of Good News Publishers. Used by permission. All rights reserved.';
+
+    function fetchEsv(code, chapter, from, to) {
+        var q = 'q=' + encodeURIComponent(enRef(code, chapter, from, to)) +
+            '&include-passage-references=false&include-verse-numbers=true&include-first-verse-numbers=true' +
+            '&include-footnotes=false&include-footnote-body=false&include-headings=false&include-short-copyright=false' +
+            '&include-selahs=true&indent-paragraphs=0&indent-poetry=false&indent-declares=0&indent-psalm-doxology=0';
+        return fetch('https://api.esv.org/v3/passage/text/?' + q, { headers: { Authorization: 'Token ' + esvKey } })
+            .then(function (r) { if (!r.ok) throw new Error('esv'); return r.json(); })
+            .then(function (d) {
+                // "[16] For God so loved ... [17] For God did not ..." → 절 단위로 나눔
+                var parts = (d.passages && d.passages[0] || '').split(/\[(\d+)\]/);
+                var list = [];
+                for (var i = 1; i < parts.length; i += 2) {
+                    list.push({ n: +parts[i], t: parts[i + 1].replace(/\s+/g, ' ').trim() });
+                }
+                return list;
+            });
     }
 
     // 영어 본문(WEB 또는 KJV, 둘 다 퍼블릭 도메인) — bible-api.com. 장 전체를 받음 (유다서처럼 1장짜리 책도 정확히)
@@ -60,8 +80,9 @@ var Bible = (function () {
         return korCache[code];
     }
 
-    // 한 장의 본문을 [{ n: 절 번호, t: 본문 }] 로. translation: 'ko' | 'web' | 'kjv'
+    // 한 장의 본문을 [{ n: 절 번호, t: 본문 }] 로. translation: 'ko' | 'esv' | 'web' | 'kjv'
     function chapterText(code, chapter, translation) {
+        if (translation === 'esv') return fetchEsv(code, chapter);
         if (translation === 'ko') {
             return loadKorean(code).then(function (book) {
                 return (book[chapter - 1] || []).map(function (t, i) { return { n: i + 1, t: t }; })
@@ -73,8 +94,10 @@ var Bible = (function () {
         });
     }
 
-    function passageText(p) {
-        return chapterText(p.book, p.chapter, 'ko').then(function (list) {
+    function passageText(p, translation) {
+        translation = translation || 'ko';
+        if (translation === 'esv') return fetchEsv(p.book, p.chapter, p.from, p.to);
+        return chapterText(p.book, p.chapter, translation).then(function (list) {
             if (!p.from) return list;
             var to = p.to || p.from;
             return list.filter(function (v) { return v.n >= p.from && v.n <= to; });
@@ -112,5 +135,5 @@ var Bible = (function () {
         return allChapters.slice(start, end);
     }
 
-    return { book: book, chapterText: chapterText, passageText: passageText, nivUrl: nivUrl, fetchEnglish: fetchEnglish, enRef: enRef, label: label, step: step, planForDay: planForDay, totalChapters: allChapters.length };
+    return { book: book, chapterText: chapterText, passageText: passageText, setEsvKey: setEsvKey, hasEsv: hasEsv, ESV_NOTICE: ESV_NOTICE, fetchEnglish: fetchEnglish, enRef: enRef, label: label, step: step, planForDay: planForDay, totalChapters: allChapters.length };
 })();

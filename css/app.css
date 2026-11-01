@@ -259,10 +259,11 @@ textarea { resize: vertical; line-height: 1.5; }
 .segmented { flex: 1; display: grid; grid-template-columns: 1fr 1fr; padding: 4px; gap: 4px; border-radius: 14px; background: var(--sun-soft); }
 .segmented button { min-height: 42px; border: 0; border-radius: 10px; background: transparent; font-weight: 600; cursor: pointer; color: var(--ink-soft); }
 .segmented button.active { background: var(--card); color: var(--ink); box-shadow: var(--shadow); }
-.niv-btn { flex: none; min-height: 50px; border-color: var(--sun); color: var(--sun-deep); }
 .lang-en { font-family: Georgia, 'Times New Roman', serif; line-height: 1.75; }
 .lang-en sup { font-family: -apple-system, sans-serif; }
-.niv-link { display: inline-block; margin: 2px 0 10px; color: var(--sun-deep); font-weight: 600; font-size: 0.9rem; }
+.en-toggle { display: inline-block; margin: 2px 0 10px; padding: 10px 14px; min-height: 44px; border: 1px solid var(--sun); border-radius: 12px; background: transparent; color: var(--sun-deep); font: inherit; font-weight: 600; font-size: 0.95rem; cursor: pointer; }
+.en-toggle.open { background: var(--sun); color: #fff; }
+.passage-en { margin-bottom: 12px; }
 
 /* ---------- 영어 듣기 ---------- */
 .listen-bar { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }

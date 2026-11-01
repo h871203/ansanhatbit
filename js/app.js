@@ -439,7 +439,8 @@
         return null;
     }
     function usingHuman() { return version === 'en' && voiceMode === 'human' && !!humanSegment(pos.book, pos.chapter); }
-    function textTranslation() { return version === 'ko' ? 'ko' : usingHuman() ? 'kjv' : 'web'; }
+    function englishTranslation() { return Bible.hasEsv() ? 'esv' : 'web'; }
+    function textTranslation() { return version === 'ko' ? 'ko' : usingHuman() ? 'kjv' : englishTranslation(); }
 
     function updateListenPanels() {
         var en = version === 'en';
@@ -518,7 +519,6 @@
         fillChapterSelect();
         $('chapterSelect').value = pos.chapter;
         $('bibleTitle').textContent = Bible.label(pos) + (version === 'en' ? ' · ' + Bible.enRef(pos.book, pos.chapter) : '');
-        $('nivLink').href = Bible.nivUrl(pos.book, pos.chapter);
         document.querySelectorAll('#versionSeg button').forEach(function (b) {
             b.classList.toggle('active', b.dataset.ver === version);
             b.setAttribute('aria-selected', b.dataset.ver === version);
@@ -526,7 +526,8 @@
         if (shownTextKey !== pos.book + pos.chapter + textTranslation()) stopSpeech();
         $('bibleSource').textContent = version === 'ko' ? '본문: 개역한글 (저작권 만료)'
             : usingHuman() ? 'English: King James Version · 낭독: LibriVox 자원봉사자 (퍼블릭 도메인)'
-            : 'English: World English Bible (퍼블릭 도메인) · NIV는 BibleGateway에서 열립니다';
+            : Bible.hasEsv() ? 'English: ESV · ' + Bible.ESV_NOTICE
+            : 'English: World English Bible (퍼블릭 도메인)';
         updateListenPanels();
         renderText();
         $('prevChapter').disabled = !Bible.step(pos.book, pos.chapter, -1);
@@ -613,15 +614,37 @@
         });
     }
 
-    function nivLink(p) {
-        return '<a class="niv-link" target="_blank" rel="noopener" href="' +
-            esc(Bible.nivUrl(p.book, p.chapter, p.from, p.to)) + '">NIV로 읽기 ↗</a>';
+    // 설교·QT 본문 아래 '영어로 보기' — 누르면 앱 안에서 ESV(키가 없으면 WEB)를 펼침
+    function englishLink(p) {
+        var name = Bible.hasEsv() ? 'ESV' : 'WEB';
+        return '<button type="button" class="en-toggle" data-book="' + esc(p.book) + '" data-chapter="' + p.chapter +
+            '" data-from="' + (p.from || '') + '" data-to="' + (p.to || '') + '">🇺🇸 영어로 보기 (' + name + ')</button>' +
+            '<div class="reader passage-en lang-en" hidden></div>';
     }
+    document.addEventListener('click', function (e) {
+        var b = e.target.closest('.en-toggle');
+        if (!b) return;
+        var box = b.nextElementSibling;
+        box.hidden = !box.hidden;
+        b.classList.toggle('open', !box.hidden);
+        if (box.hidden || box.dataset.loaded) return;
+        box.dataset.loaded = '1';
+        box.innerHTML = '<p class="muted">Loading…</p>';
+        var d = b.dataset, translation = englishTranslation();
+        Bible.passageText({ book: d.book, chapter: +d.chapter, from: +d.from || 0, to: +d.to || 0 }, translation).then(function (list) {
+            box.innerHTML = list.map(function (v) { return '<p><sup>' + v.n + '</sup> ' + esc(v.t) + '</p>'; }).join('') +
+                '<p class="muted small">' + (translation === 'esv' ? '(ESV) ' + esc(Bible.ESV_NOTICE)
+                    : '(WEB) World English Bible · 퍼블릭 도메인') + '</p>';
+        }).catch(function () {
+            delete box.dataset.loaded;
+            box.innerHTML = '<p class="muted">영어 본문을 불러오지 못했습니다. 인터넷 연결을 확인해 주세요.</p>';
+        });
+    });
 
     function passageBlock(p) {
         if (!p) return '';
         return '<details class="passage"><summary>📖 ' + esc(Bible.label(p)) + ' 본문 보기</summary>' +
-            passageHtml(p) + nivLink(p) + '</details>';
+            passageHtml(p) + englishLink(p) + '</details>';
     }
 
     function renderSermon(i) {
@@ -684,7 +707,7 @@
             '<h3 class="sermon-title">' + esc(item.title) + '</h3>' +
             '<p class="verse-ref">' + esc(Bible.label(item.passage)) + '</p>' +
             passageHtml(item.passage) +
-            nivLink(item.passage) +
+            englishLink(item.passage) +
             '<div class="card-kicker">묵상 질문</div><ol class="prayer-list">' +
             (item.questions || []).map(function (q) { return '<li>' + esc(q) + '</li>'; }).join('') + '</ol>';
         fillPassages($('qtDetail'));
@@ -765,6 +788,7 @@
     fillBookSelect();
     Promise.all(['church', 'sermons', 'qt', 'prayers', 'news', 'audio-kjv'].map(loadJson)).then(function (res) {
         data = { church: res[0], sermons: res[1], qt: res[2], prayers: res[3], news: res[4], audio: res[5] };
+        Bible.setEsvKey(data.church && data.church.esvApiKey);
         renderHome();
         renderPrayerTimes();
         renderPrayed();
