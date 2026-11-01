@@ -1,0 +1,6 @@
+# ESV 중계 Worker 설정 — 배포: tools 폴더에서 `npx wrangler@4 deploy`
+# ESV 키는 여기 넣지 않고 `npx wrangler@4 secret put ESV_API_KEY` 로 Cloudflare에 비밀로 저장
+name = "ansanhatbit-esv"
+main = "esv-worker.js"
+compatibility_date = "2026-10-01"
+workers_dev = true
