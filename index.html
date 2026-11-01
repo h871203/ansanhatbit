@@ -71,6 +71,19 @@
                 </a>
             </div>
 
+            <div class="grid-2">
+                <a class="tile" href="#bulletin">
+                    <span class="tile-icon">📰</span>
+                    <strong>이번 주 주보</strong>
+                    <span id="homeBulletin">주보 보기</span>
+                </a>
+                <a class="tile" href="#photos">
+                    <span class="tile-icon">📷</span>
+                    <strong>교회 앨범</strong>
+                    <span id="homePhotos">행사 사진</span>
+                </a>
+            </div>
+
             <a class="card" href="#church">
                 <div class="card-kicker">📢 교회 소식</div>
                 <ul class="plain-list" id="homeNews"></ul>
@@ -205,6 +218,21 @@
             </div>
         </section>
 
+        <!-- 주보 -->
+        <section class="view" id="view-bulletin" hidden>
+            <h2 class="view-title">주보</h2>
+            <article class="card" id="bulletinDetail"></article>
+            <h3 class="section-title">지난 주보</h3>
+            <ul class="link-list" id="bulletinList"></ul>
+        </section>
+
+        <!-- 교회 앨범 -->
+        <section class="view" id="view-photos" hidden>
+            <h2 class="view-title">교회 앨범</h2>
+            <div id="albumDetail" hidden></div>
+            <div id="albumList"></div>
+        </section>
+
         <!-- 교회 -->
         <section class="view" id="view-church" hidden>
             <h2 class="view-title">교회 소식 · 안내</h2>
@@ -241,6 +269,20 @@
         <a href="#qt" data-tab="qt"><span>✍️</span>QT</a>
         <a href="#prayer" data-tab="prayer"><span>🙏</span>기도</a>
     </nav>
+
+    <div class="viewer" id="viewer" hidden>
+        <div class="viewer-bar">
+            <button class="btn" id="viewerZoom">🔍 크게</button>
+            <span id="viewerCount"></span>
+            <button class="btn" id="viewerClose">✕ 닫기</button>
+        </div>
+        <div class="viewer-stage" id="viewerStage"><img id="viewerImg" alt=""></div>
+        <p class="viewer-caption" id="viewerCaption"></p>
+        <div class="viewer-nav">
+            <button class="btn" id="viewerPrev">◀ 이전</button>
+            <button class="btn" id="viewerNext">다음 ▶</button>
+        </div>
+    </div>
 
     <div class="overlay" id="prayerOverlay" hidden>
         <div class="overlay-box">

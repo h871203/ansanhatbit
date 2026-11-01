@@ -58,7 +58,7 @@
     });
 
     // ---------- 화면 이동 ----------
-    var VIEWS = ['home', 'bible', 'sermon', 'qt', 'prayer', 'church'];
+    var VIEWS = ['home', 'bible', 'sermon', 'qt', 'prayer', 'church', 'bulletin', 'photos'];
     function route() {
         var name = (location.hash || '#home').slice(1);
         if (VIEWS.indexOf(name) < 0) name = 'home';
@@ -68,6 +68,7 @@
         });
         if (name === 'bible') showChapter(); // iframe은 성경 화면을 열 때 불러옴
         else { stopSpeech(); $('kjvAudio').pause(); }
+        if (name !== 'photos') showAlbum(null);
         window.scrollTo(0, 0);
     }
     window.addEventListener('hashchange', route);
@@ -92,6 +93,11 @@
         if (s) $('homeSermon').textContent = s.title;
         var q = currentQt();
         if (q) $('homeQt').textContent = Bible.label(q.passage);
+
+        var b = bulletins()[0];
+        if (b) $('homeBulletin').textContent = koDate(b.date);
+        var a = albums()[0];
+        if (a) $('homePhotos').textContent = a.title;
 
         var notices = (data.news && data.news.notices) || [];
         $('homeNews').innerHTML = notices.slice(0, 3).map(function (n) {
@@ -737,6 +743,127 @@
         window.scrollTo(0, 0);
     });
 
+    // ---------- 사진 크게 보기 (주보·앨범 공용) ----------
+    var viewerItems = [], viewerIndex = 0;
+    function openViewer(items, index) {
+        viewerItems = items;
+        viewerIndex = index;
+        $('viewer').hidden = false;
+        document.body.style.overflow = 'hidden';
+        showViewerItem();
+    }
+    function showViewerItem() {
+        var item = viewerItems[viewerIndex];
+        $('viewerImg').src = item.src;
+        $('viewerImg').alt = item.caption || '';
+        $('viewerCaption').textContent = item.caption || '';
+        $('viewerCount').textContent = viewerItems.length > 1 ? (viewerIndex + 1) + ' / ' + viewerItems.length : '';
+        $('viewerPrev').disabled = viewerIndex === 0;
+        $('viewerNext').disabled = viewerIndex === viewerItems.length - 1;
+        $('viewerStage').classList.remove('zoomed');
+        $('viewerZoom').textContent = '🔍 크게';
+        $('viewerStage').scrollTo(0, 0);
+    }
+    function closeViewer() {
+        $('viewer').hidden = true;
+        $('viewerImg').removeAttribute('src');
+        document.body.style.overflow = '';
+    }
+    $('viewerClose').addEventListener('click', closeViewer);
+    $('viewerPrev').addEventListener('click', function () { if (viewerIndex > 0) { viewerIndex--; showViewerItem(); } });
+    $('viewerNext').addEventListener('click', function () { if (viewerIndex < viewerItems.length - 1) { viewerIndex++; showViewerItem(); } });
+    $('viewerZoom').addEventListener('click', function () {
+        var zoomed = $('viewerStage').classList.toggle('zoomed');
+        this.textContent = zoomed ? '🔍 작게' : '🔍 크게';
+    });
+    document.addEventListener('keydown', function (e) {
+        if ($('viewer').hidden) return;
+        if (e.key === 'Escape') closeViewer();
+        else if (e.key === 'ArrowLeft') $('viewerPrev').click();
+        else if (e.key === 'ArrowRight') $('viewerNext').click();
+    });
+
+    // ---------- 주보 ----------
+    function bulletins() {
+        return ((data.bulletins && data.bulletins.bulletins) || []).slice().sort(function (a, b) { return a.date < b.date ? 1 : -1; });
+    }
+    function renderBulletin(i) {
+        var list = bulletins();
+        var b = list[i];
+        if (!b) {
+            $('bulletinDetail').innerHTML = '<p class="empty-note">아직 올라온 주보가 없습니다.</p>';
+            $('bulletinList').innerHTML = '';
+            return;
+        }
+        var pages = b.pages || [];
+        $('bulletinDetail').innerHTML =
+            '<div class="card-kicker">' + (i === 0 ? '이번 주 주보 · ' : '') + koDate(b.date) + '</div>' +
+            '<h3 class="sermon-title">' + esc(b.title || '주보') + '</h3>' +
+            (pages.length ? '<p class="muted small">사진을 누르면 크게 볼 수 있습니다.</p>' : '') +
+            pages.map(function (src, j) {
+                return '<img class="bulletin-page" loading="lazy" data-i="' + j + '" src="' + esc(src) + '" alt="주보 ' + (j + 1) + '쪽">';
+            }).join('') +
+            (b.pdf ? '<a class="btn block" target="_blank" rel="noopener" href="' + esc(b.pdf) + '">📄 PDF로 보기</a>' : '');
+        $('bulletinDetail').onclick = function (e) {
+            var img = e.target.closest('.bulletin-page');
+            if (!img) return;
+            openViewer(pages.map(function (src, j) { return { src: src, caption: koDate(b.date) + ' 주보 ' + (j + 1) + '쪽' }; }), +img.dataset.i);
+        };
+        $('bulletinList').innerHTML = list.map(function (x, j) {
+            return '<li><button class="' + (j === i ? 'active' : '') + '" data-i="' + j + '"><span>' + esc(x.title || '주보') +
+                '</span><small>' + koDate(x.date) + '</small></button></li>';
+        }).join('');
+    }
+    $('bulletinList').addEventListener('click', function (e) {
+        var b = e.target.closest('button'); if (!b) return;
+        renderBulletin(+b.dataset.i); window.scrollTo(0, 0);
+    });
+
+    // ---------- 교회 앨범 ----------
+    function albums() {
+        return ((data.gallery && data.gallery.albums) || []).slice().sort(function (a, b) { return a.date < b.date ? 1 : -1; });
+    }
+    function renderAlbums() {
+        var list = albums();
+        if (!list.length) { $('albumList').innerHTML = '<p class="empty-note">아직 올라온 사진이 없습니다.</p>'; return; }
+        var html = '', month = '';
+        list.forEach(function (a, i) {
+            var m = a.date.slice(0, 7);
+            if (m !== month) {
+                month = m;
+                html += '<h3 class="album-month">' + m.slice(0, 4) + '년 ' + (+m.slice(5)) + '월</h3>';
+            }
+            var photos = a.photos || [];
+            html += '<button class="album-card" data-i="' + i + '">' +
+                (photos[0] ? '<img loading="lazy" src="' + esc(photos[0].src) + '" alt="">' : '<img alt="">') +
+                '<span><strong>' + esc(a.title) + '</strong><small>' + koDate(a.date) + ' · 사진 ' + photos.length + '장</small></span></button>';
+        });
+        $('albumList').innerHTML = html;
+    }
+    function showAlbum(i) {
+        var a = i === null ? null : albums()[i];
+        $('albumDetail').hidden = !a;
+        $('albumList').hidden = !!a;
+        if (!a) { $('albumDetail').innerHTML = ''; return; }
+        var photos = a.photos || [];
+        $('albumDetail').innerHTML =
+            '<button class="btn" id="albumBack">◀ 앨범 목록</button>' +
+            '<h3 class="sermon-title" style="margin-top:14px">' + esc(a.title) + '</h3>' +
+            '<p class="muted">' + koDate(a.date) + (a.description ? ' · ' + esc(a.description) : '') + '</p>' +
+            '<div class="photo-grid">' + photos.map(function (p, j) {
+                return '<button data-j="' + j + '"><img loading="lazy" src="' + esc(p.src) + '" alt="' + esc(p.caption || '') + '"></button>';
+            }).join('') + '</div>';
+        $('albumDetail').onclick = function (e) {
+            if (e.target.closest('#albumBack')) { showAlbum(null); window.scrollTo(0, 0); return; }
+            var b = e.target.closest('.photo-grid button');
+            if (b) openViewer(photos, +b.dataset.j);
+        };
+        window.scrollTo(0, 0);
+    }
+    $('albumList').addEventListener('click', function (e) {
+        var b = e.target.closest('.album-card'); if (b) showAlbum(+b.dataset.i);
+    });
+
     // ---------- 교회 소식 · 안내 ----------
     function renderChurch() {
         var news = data.news || {};
@@ -786,8 +913,8 @@
 
     // ---------- 시작 ----------
     fillBookSelect();
-    Promise.all(['church', 'sermons', 'qt', 'prayers', 'news', 'audio-kjv'].map(loadJson)).then(function (res) {
-        data = { church: res[0], sermons: res[1], qt: res[2], prayers: res[3], news: res[4], audio: res[5] };
+    Promise.all(['church', 'sermons', 'qt', 'prayers', 'news', 'audio-kjv', 'bulletins', 'gallery'].map(loadJson)).then(function (res) {
+        data = { church: res[0], sermons: res[1], qt: res[2], prayers: res[3], news: res[4], audio: res[5], bulletins: res[6], gallery: res[7] };
         Bible.setEsvProxy(data.church && data.church.esvProxy);
         renderHome();
         renderPrayerTimes();
@@ -798,6 +925,8 @@
         renderSermon(0);
         renderQt(currentQt());
         renderChurch();
+        renderBulletin(0);
+        renderAlbums();
         route();
         checkPrayerTime();
         setInterval(checkPrayerTime, 20000);
