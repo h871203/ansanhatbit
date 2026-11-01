@@ -50,7 +50,7 @@
 
 1. 저장소 **Settings → Pages**
 2. Source: **Deploy from a branch**, Branch: `main` / `/ (root)` → Save
-3. 잠시 후 `https://h871203.github.io/ansanhatbit/` 주소로 열립니다. 이 주소를 성도들에게 공유하세요.
+3. 잠시 후 `https://ansanhatbit.com` 주소로 열립니다 (도메인은 Cloudflare에서 관리, 저장소의 `CNAME` 파일). 이 주소를 성도들에게 공유하세요.
 
 ## 내 컴퓨터에서 미리 보기
 
