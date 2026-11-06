@@ -602,7 +602,11 @@
     });
 
     // ---------- 설교 ----------
-    function sermons() { return (data.sermons && data.sermons.sermons) || []; }
+    // publishFrom 날짜 전에는 숨김 (미리 올려두기용)
+    function sermons() {
+        var today = dateKey(new Date());
+        return ((data.sermons && data.sermons.sermons) || []).filter(function (s) { return !s.publishFrom || s.publishFrom <= today; });
+    }
 
     // 설교·QT 본문: 자리만 만들고 fillPassages 가 개역한글로 채움
     function passageHtml(p) {
