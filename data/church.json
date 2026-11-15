@@ -1,5 +1,5 @@
 {
-  "_안내": "교회 기본 정보입니다. worship의 day(0=주일…6=토)와 at(24시간)이 있는 예배는 홈의 '다음 예배'에 나옵니다.",
+  "_안내": "교회 기본 정보입니다. worship의 day(0=주일…6=토)와 at(24시간)이 있는 예배는 홈의 '다음 예배'에 나옵니다. hymnPlaylist에 교회 유튜브 '이번 주 찬송' 재생목록 주소를 넣으면 홈에 '전체 이어 듣기'가 나옵니다(비우면 찬송마다 유튜브 검색).",
   "name": "안산햇빛교회",
   "slogan": "말씀과 기도로 하나 되는 우리 교회",
   "prayerTimes": [
@@ -10,7 +10,7 @@
   "address": "경기 안산시 상록구 본삼로 11 5층 안산햇빛교회",
   "mapUrl": "https://map.naver.com/p/search/경기%20안산시%20상록구%20본삼로%2011",
   "phone": "010-2676-8293",
-  "youtubeChannel": "",
+  "youtubeChannel": "https://www.youtube.com/@%EC%95%88%EC%82%B0%ED%96%87%EB%B9%9B%EA%B5%90%ED%9A%8C",
   "esvProxy": "https://ansanhatbit-esv.h890607.workers.dev",
   "worship": [
     {
@@ -72,5 +72,6 @@
     "number": "9002-1877-0503-8",
     "holder": "안산햇빛교회"
   },
-  "shareApi": "https://ansanhatbit-share.h890607.workers.dev"
+  "shareApi": "https://ansanhatbit-share.h890607.workers.dev",
+  "hymnPlaylist": ""
 }

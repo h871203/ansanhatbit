@@ -474,3 +474,19 @@ textarea { resize: vertical; line-height: 1.5; }
 html[data-font="large"] .big-btns, html[data-font="xlarge"] .big-btns { grid-template-columns: 1fr; }
 html[data-font="large"] .big-btn, html[data-font="xlarge"] .big-btn { min-height: 5rem; flex-direction: row; align-items: center; justify-content: flex-start; gap: 14px; }
 html[data-font="large"] .big-btn small, html[data-font="xlarge"] .big-btn small { display: none; }
+
+/* ---------- 이번 주 찬송 ---------- */
+.hymn-strip { margin-top: 16px; padding: 16px 18px; border-radius: 18px; background: var(--card); border: 1px solid var(--line); }
+.hs-k { font-weight: 700; color: var(--sun-deep); font-size: 0.95rem; margin-bottom: 10px; }
+.hs-k small { font-weight: 500; color: var(--muted); margin-left: 4px; white-space: nowrap; }
+.hs-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(5.4rem, 1fr)); gap: 8px; }
+.hymn-chip { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 4rem; padding: 6px 4px; border-radius: 14px;
+    background: var(--sun-soft); text-align: center; }
+.hymn-chip b { font-size: 1.2rem; font-weight: 900; font-variant-numeric: tabular-nums; }
+.hymn-chip small { font-size: 0.75rem; color: var(--ink-soft); white-space: nowrap; }
+.hymn-strip .btn { margin-top: 12px; }
+.hs-note { margin-top: 10px; font-size: 0.85rem; color: var(--muted); }
+.yt-link { display: flex; align-items: center; justify-content: center; min-height: 54px; margin-top: 12px; border-radius: 16px; border: 2px solid var(--line);
+    background: var(--card); font-weight: 700; font-size: 1.02rem; text-align: center; text-wrap: balance; }
+.hymn-mini { display: inline-flex; align-items: center; gap: 2px; padding: 2px 8px; margin: 1px 0; border-radius: 999px; background: var(--sun-soft);
+    color: var(--ink); font-weight: 700; white-space: nowrap; text-decoration: none; }

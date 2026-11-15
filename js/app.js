@@ -76,6 +76,34 @@
     window.addEventListener('hashchange', route);
 
     // ---------- 홈 ----------
+    // 찬송: 주보 예배 순서의 'N장'을 뽑아 유튜브로 연결 (가사는 저작권 때문에 앱에 넣지 않음)
+    function hymnUrl(n) { return 'https://www.youtube.com/results?search_query=' + encodeURIComponent('새찬송가 ' + n + '장'); }
+    function hymnsOf(service) {
+        var list = [];
+        (service && service.order || []).forEach(function (r) {
+            if (!r.item || r.item.indexOf('찬송') < 0) return;
+            (String(r.detail || '').match(/\d{1,3}(?=장)/g) || []).forEach(function (n) { list.push({ n: +n, item: r.item }); });
+        });
+        return list;
+    }
+    function renderHomeHymns() {
+        var c = data.church || {}, b = bulletins()[0];
+        var sv = b && (b.services || [])[0];
+        var hymns = hymnsOf(sv);
+        $('homeHymns').hidden = !hymns.length;
+        if (hymns.length) {
+            $('homeHymnWhen').textContent = (+b.date.slice(5, 7)) + '월 ' + (+b.date.slice(8)) + '일 ' + (sv.name || '');
+            $('homeHymnList').innerHTML = hymns.map(function (h) {
+                return '<a class="hymn-chip" target="_blank" rel="noopener" href="' + hymnUrl(h.n) + '"><b>' + h.n + '장</b><small>' + esc(h.item) + '</small></a>';
+            }).join('');
+            var pl = (b && b.hymnPlaylist) || c.hymnPlaylist;
+            $('homeHymnAll').hidden = !pl;
+            if (pl) $('homeHymnAll').href = pl;
+        }
+        $('homeYoutube').hidden = !c.youtubeChannel;
+        if (c.youtubeChannel) $('homeYoutube').href = c.youtubeChannel;
+    }
+
     // 다음 예배: church.json worship 중 day·at 이 있는 것에서 지금 이후 가장 가까운 것
     function nextWorship(now) {
         var list = ((data.church && data.church.worship) || []).filter(function (w) { return w.day != null && w.at; });
@@ -106,6 +134,7 @@
         $('heroTitle').textContent = c.name || '안산햇빛교회';
         $('homeSub').textContent = [c.denomination, c.pastor && '담임목사 ' + c.pastor.replace(/\s*목사$/, '')].filter(Boolean).join(' · ');
         renderNextWorship();
+        renderHomeHymns();
 
         var plan = Bible.planForDay(dayOfYear(now));
         if (plan.length) $('homePlan').textContent = planRangeLabel(plan);
@@ -838,7 +867,9 @@
             if (r.part) return '<li class="bl-part">' + esc(r.part) + '</li>';
             if (r.stand) hasStand = true;
             var ps = r.passages || [];
-            var detail = r.detail ? esc(r.detail) : ps.map(function (p) { return '<span class="bl-ref">' + esc(Bible.label(p)).replace(/(\S*–\S*)/g, '<span class="nowrap">$1</span>') + '</span>'; }).join('');
+            var detail = r.detail ? (r.item.indexOf('찬송') >= 0
+                ? esc(r.detail).replace(/(\d{1,3})장/g, function (m, n) { return '<a class="hymn-mini" target="_blank" rel="noopener" href="' + hymnUrl(n) + '">' + n + '장 <span aria-hidden="true">🎵</span></a>'; })
+                : esc(r.detail)) : ps.map(function (p) { return '<span class="bl-ref">' + esc(Bible.label(p)).replace(/(\S*–\S*)/g, '<span class="nowrap">$1</span>') + '</span>'; }).join('');
             return '<li class="bl-item' + (r.highlight ? ' bl-sermon' : '') + '">' +
                 '<span class="bl-name">' + (r.stand ? '<span class="bl-stand" aria-label="일어서서">※</span>' : '') + esc(r.item) + '</span>' +
                 '<span class="bl-detail">' + detail + '</span>' +
