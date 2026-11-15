@@ -3,7 +3,7 @@ CREATE TABLE IF NOT EXISTS posts (
     kind TEXT NOT NULL,          -- thanks | prayer
     name TEXT NOT NULL DEFAULT '',
     text TEXT NOT NULL,
-    status TEXT NOT NULL,        -- pending | approved | hidden
+    status TEXT NOT NULL,        -- approved | hidden
     amen INTEGER NOT NULL DEFAULT 0,
     created TEXT NOT NULL
 );

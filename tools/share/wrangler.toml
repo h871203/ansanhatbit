@@ -1,5 +1,5 @@
 # 감사·기도 나눔판 Worker — 배포: tools/share 폴더에서 `npx wrangler@4 deploy`
-# 암호는 여기 넣지 않고 `npx wrangler@4 secret put CHURCH_CODE` / `ADMIN_CODE` 로 Cloudflare에 비밀로 저장
+# 관리자 암호는 여기 넣지 않고 `npx wrangler@4 secret put ADMIN_CODE` 로 Cloudflare에 비밀로 저장
 name = "ansanhatbit-share"
 main = "share-worker.js"
 compatibility_date = "2026-10-01"

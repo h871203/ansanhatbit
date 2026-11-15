@@ -32,6 +32,7 @@
         <section class="view" id="view-home">
             <div class="hero">
                 <p class="hero-date" id="todayLabel"></p>
+                <p class="hero-hello" id="heroHello" hidden></p>
                 <h1 id="heroTitle">안산햇빛교회</h1>
                 <p class="hero-slogan" id="slogan"></p>
             </div>
@@ -235,17 +236,7 @@
         <section class="view" id="view-share" hidden>
             <h2 class="view-title">감사·기도 나눔</h2>
 
-            <div class="card" id="shareLogin" hidden>
-                <div class="card-kicker">🔑 교회 암호</div>
-                <p>우리 교회 성도만 볼 수 있는 나눔판입니다. 교회에서 알려 드린 암호를 한 번만 넣어 주세요.</p>
-                <form id="shareLoginForm" class="share-form">
-                    <input id="shareCodeInput" type="password" autocomplete="off" placeholder="교회 암호" aria-label="교회 암호">
-                    <button class="btn btn-primary block">들어가기</button>
-                </form>
-                <p class="muted small" id="shareLoginMsg"></p>
-            </div>
-
-            <div id="shareMain" hidden>
+            <div id="shareMain">
                 <button class="btn btn-primary block share-write-btn" id="shareWriteBtn">✏️ 나눔 글 쓰기</button>
 
                 <form class="card share-form" id="shareForm" hidden>
@@ -254,13 +245,11 @@
                         <button type="button" data-kind="thanks" class="active">💛 감사해요</button>
                         <button type="button" data-kind="prayer">🙏 기도해 주세요</button>
                     </div>
-                    <label class="field">이름
-                        <input id="shareName" maxlength="20" placeholder="비워 두면 '익명'으로 올라가요">
-                    </label>
+                    <p class="share-me">✍️ <strong id="shareMe"></strong> 님 이름으로 올라갑니다 <button type="button" class="link-btn" id="shareRename">이름 바꾸기</button></p>
                     <label class="field">내용
                         <textarea id="shareText" rows="5" maxlength="500" placeholder="감사한 일이나 기도 제목을 적어 주세요"></textarea>
                     </label>
-                    <p class="muted small">목사님이 확인하신 뒤 나눔판에 올라갑니다.</p>
+                    <p class="muted small">올리면 바로 나눔판에 보입니다. 우리 앱을 쓰는 분은 누구나 볼 수 있으니, 꼭 필요한 만큼만 적어 주세요.</p>
                     <div class="share-actions">
                         <button type="button" class="btn" id="shareCancel">취소</button>
                         <button class="btn btn-primary">올리기</button>
@@ -280,7 +269,7 @@
 
         <!-- 나눔 관리자 -->
         <section class="view" id="view-share-admin" hidden>
-            <h2 class="view-title">나눔 글 확인</h2>
+            <h2 class="view-title">나눔판 관리</h2>
             <div class="card" id="adminLogin">
                 <div class="card-kicker">🔒 관리자 암호</div>
                 <form id="adminLoginForm" class="share-form">
@@ -290,10 +279,11 @@
                 <p class="muted small" id="adminLoginMsg"></p>
             </div>
             <div id="adminMain" hidden>
-                <h3 class="section-title">확인 기다리는 글</h3>
-                <ul class="share-list" id="adminPending"></ul>
+                <p class="muted small">맞지 않는 글은 '내리기'를 누르면 나눔판에서 사라집니다.</p>
                 <h3 class="section-title">나눔판에 올라간 글</h3>
                 <ul class="share-list" id="adminApproved"></ul>
+                <h3 class="section-title">내린 글 (최근 30일)</h3>
+                <ul class="share-list" id="adminHidden"></ul>
                 <a class="btn block" href="#share">← 나눔판으로</a>
             </div>
         </section>
@@ -341,6 +331,18 @@
         <a href="#qt" data-tab="qt"><span>✍️</span>QT</a>
         <a href="#prayer" data-tab="prayer"><span>🙏</span>기도</a>
     </nav>
+
+    <!-- 처음 들어올 때 이름 -->
+    <div class="welcome" id="welcome" hidden>
+        <form class="welcome-box" id="welcomeForm">
+            <img src="icons/icon-192.png" alt="" width="72" height="72">
+            <h2>안산햇빛교회에<br>오신 것을 환영합니다</h2>
+            <p>성함을 적어 주세요.<br>한 번만 적으면 됩니다.</p>
+            <input id="welcomeName" maxlength="20" autocomplete="name" placeholder="예: 홍길동" aria-label="이름">
+            <button class="btn btn-primary block">시작하기</button>
+            <p class="welcome-msg" id="welcomeMsg"></p>
+        </form>
+    </div>
 
     <div class="viewer" id="viewer" hidden>
         <div class="viewer-bar">

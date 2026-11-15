@@ -1,13 +1,14 @@
 // 감사·기도 나눔판 (Cloudflare Worker + D1)
-// 성도는 교회 암호로 글을 쓰고 읽는다. 쓴 글은 관리자가 '올리기'를 눌러야 나눔판에 보인다.
-// 비밀값(코드에 넣지 않음): CHURCH_CODE = 성도용 교회 암호, ADMIN_CODE = 관리자 암호
-//   tools/share 폴더에서 `npx wrangler@4 secret put CHURCH_CODE` / `... ADMIN_CODE`
+// 성도는 앱에 처음 들어올 때 넣은 이름으로 글을 쓰고, 글은 바로 나눔판에 보인다.
+// 관리자는 관리자 암호로 들어와 맞지 않는 글을 내린다.
+// 비밀값(코드에 넣지 않음): ADMIN_CODE = 관리자 암호
+//   tools/share 폴더에서 `npx wrangler@4 secret put ADMIN_CODE`
 //
-// GET  /posts                      승인된 글 (X-Church-Code)
-// POST /posts {kind,name,text}     새 글 → 확인 대기 (X-Church-Code)
-// POST /posts/:id/amen             '함께 기도해요' +1 (X-Church-Code)
-// GET  /admin/posts                대기·승인·숨김 글 전체 (X-Admin-Code)
-// POST /admin/posts/:id {status}   approved | hidden | pending (X-Admin-Code)
+// GET  /posts                      나눔판 글
+// POST /posts {kind,name,text}     새 글 (바로 보임)
+// POST /posts/:id/amen             '함께 기도해요' +1
+// GET  /admin/posts                올라간 글과 최근 내린 글 (X-Admin-Code)
+// POST /admin/posts/:id {status}   approved(다시 올리기) | hidden(내리기) (X-Admin-Code)
 
 const ALLOWED_ORIGINS = [
     'https://h871203.github.io',
@@ -17,13 +18,13 @@ const ALLOWED_ORIGINS = [
     'http://localhost:8771',
 ];
 const KINDS = ['thanks', 'prayer'];
-const STATUSES = ['pending', 'approved', 'hidden'];
+const STATUSES = ['approved', 'hidden'];
 
 function cors(origin) {
     return {
         'Access-Control-Allow-Origin': origin,
         'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-        'Access-Control-Allow-Headers': 'Content-Type, X-Church-Code, X-Admin-Code',
+        'Access-Control-Allow-Headers': 'Content-Type, X-Admin-Code',
         'Access-Control-Max-Age': '86400',
         'Vary': 'Origin',
     };
@@ -56,13 +57,12 @@ export default {
         const origin = request.headers.get('Origin') || '';
         if (!ALLOWED_ORIGINS.includes(origin)) return new Response('Forbidden', { status: 403 });
         if (request.method === 'OPTIONS') return new Response(null, { status: 204, headers: cors(origin) });
-        if (!env.CHURCH_CODE || !env.ADMIN_CODE) return json(origin, { error: 'not_ready' }, 503);
 
         const path = new URL(request.url).pathname.replace(/\/+$/, '');
-        const isAdmin = path.startsWith('/admin/');
-        const ok = isAdmin ? same(request.headers.get('X-Admin-Code'), env.ADMIN_CODE)
-                           : same(request.headers.get('X-Church-Code'), env.CHURCH_CODE);
-        if (!ok) return json(origin, { error: 'wrong_code' }, 401);
+        if (path.startsWith('/admin/')) {
+            if (!env.ADMIN_CODE) return json(origin, { error: 'not_ready' }, 503);
+            if (!same(request.headers.get('X-Admin-Code'), env.ADMIN_CODE)) return json(origin, { error: 'wrong_code' }, 401);
+        }
 
         let m;
         if (request.method === 'GET' && path === '/posts') {
@@ -75,10 +75,12 @@ export default {
             const kind = KINDS.includes(body.kind) ? body.kind : null;
             const text = clean(body.text, 500);
             const name = clean(body.name, 20);
-            if (!kind || text.length < 2) return json(origin, { error: 'bad_input' }, 400);
-            const waiting = await env.DB.prepare(`SELECT COUNT(*) AS n FROM posts WHERE status = 'pending'`).first();
-            if (waiting.n >= 200) return json(origin, { error: 'too_many' }, 429);
-            await env.DB.prepare(`INSERT INTO posts (kind, name, text, status, amen, created) VALUES (?, ?, ?, 'pending', 0, ?)`)
+            if (!kind || !name || text.length < 2) return json(origin, { error: 'bad_input' }, 400);
+            // 도배 막기: 10분 동안 전체 20개까지
+            const recent = await env.DB.prepare(`SELECT COUNT(*) AS n FROM posts WHERE created > ?`)
+                .bind(new Date(Date.now() - 10 * 60000).toISOString()).first();
+            if (recent.n >= 20) return json(origin, { error: 'too_many' }, 429);
+            await env.DB.prepare(`INSERT INTO posts (kind, name, text, status, amen, created) VALUES (?, ?, ?, 'approved', 0, ?)`)
                 .bind(kind, name, text, new Date().toISOString()).run();
             return json(origin, { ok: true }, 201);
         }

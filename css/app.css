@@ -406,3 +406,18 @@ textarea { resize: vertical; line-height: 1.5; }
 @media (prefers-color-scheme: dark) {
     .share-post.prayer .share-kind { color: #9cc0ee; }
 }
+
+/* ---------- 처음 들어올 때 이름 ---------- */
+.welcome { position: fixed; inset: 0; z-index: 70; display: flex; align-items: center; justify-content: center; padding: 20px 16px;
+    background: linear-gradient(160deg, var(--sun-soft), var(--bg) 60%); overflow-y: auto; }
+.welcome-box { width: 100%; max-width: 420px; display: flex; flex-direction: column; align-items: center; gap: 14px; text-align: center;
+    padding: 30px 22px; border-radius: 24px; background: var(--card); box-shadow: 0 6px 30px rgba(120, 80, 20, 0.12); }
+.welcome-box img { border-radius: 18px; }
+.welcome-box h2 { font-size: clamp(1.35rem, 6vw, 1.6rem); line-height: 1.4; text-wrap: balance; }
+.welcome-box p { color: var(--ink-soft); text-wrap: balance; }
+.welcome-box input { min-height: 60px; font-size: 1.25rem; text-align: center; }
+.welcome-box .btn { min-height: 58px; font-size: 1.15rem; }
+.welcome-msg { min-height: 1.4em; font-size: 0.92rem; color: #c2410c !important; }
+.hero-hello { margin-top: 2px; font-weight: 700; color: var(--sun-deep); }
+.share-me { font-size: 0.95rem; color: var(--ink-soft); }
+.link-btn { border: 0; background: none; padding: 4px 2px; color: var(--sun-deep); font-weight: 600; text-decoration: underline; cursor: pointer; white-space: nowrap; }
