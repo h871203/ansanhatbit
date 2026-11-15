@@ -164,6 +164,11 @@
         $('nextWhat').textContent = n.w.name + (dd > 1 ? '' : ' · ' + koDate(n.at));
     }
 
+    function latestBulletinNews() {
+        var b = bulletins().filter(function (x) { return (x.news || []).length; })[0];
+        return b ? { date: b.date, news: b.news } : null;
+    }
+
     function renderHome() {
         var c = data.church || {};
         var now = new Date();
@@ -195,9 +200,12 @@
             '<p>' + [c.founded && '<span class="nowrap">' + esc(c.founded.replace(/^(\d+)-0?(\d+)-0?(\d+)$/, '$1년 $2월 $3일')) + ' 설립</span>']
                 .concat((c.motto || []).map(function (m) { return '<span class="nowrap">' + esc(m) + '</span>'; })).filter(Boolean).join(' · ') + '</p>';
 
-        var notices = (data.news && data.news.notices) || [];
-        $('homeNews').innerHTML = notices.slice(0, 3).map(function (n) {
-            return '<li>' + esc(n.title) + '</li>';
+        // 교회 소식: 따로 적은 공지 먼저, 그다음 가장 최근 주보의 교회 소식
+        var nb = latestBulletinNews();
+        var notices = ((data.news && data.news.notices) || []).map(function (n) { return n.title; });
+        $('homeNewsWhen').textContent = nb ? ' · ' + (+nb.date.slice(5, 7)) + '월 ' + (+nb.date.slice(8)) + '일 주보' : '';
+        $('homeNews').innerHTML = notices.concat(nb ? nb.news : []).map(function (t) {
+            return '<li>' + esc(t) + '</li>';
         }).join('') || '<li class="muted">새 소식이 없습니다</li>';
     }
     $('homeCopyPhone').addEventListener('click', function () {
@@ -1199,10 +1207,13 @@
     // ---------- 교회 소식 · 안내 ----------
     function renderChurch() {
         var news = data.news || {};
-        $('noticeList').innerHTML = (news.notices || []).map(function (n) {
+        var nb = latestBulletinNews();
+        $('noticeList').innerHTML = ((news.notices || []).map(function (n) {
             return '<div class="notice"><strong>' + esc(n.title) + '</strong><small>' + koDate(n.date) + '</small>' +
                 (n.body ? '<p>' + esc(n.body) + '</p>' : '') + '</div>';
-        }).join('') || '<p class="muted">공지사항이 없습니다.</p>';
+        }).join('') + (nb ? '<div class="notice"><strong>' + koDate(nb.date) + ' 주보 교회 소식</strong>' +
+            '<ol class="bl-news">' + nb.news.map(function (t) { return '<li>' + esc(t) + '</li>'; }).join('') + '</ol></div>' : ''))
+            || '<p class="muted">공지사항이 없습니다.</p>';
 
         var today = dateKey(new Date());
         var events = (news.events || []).filter(function (e) { return (e.end || e.date) >= today; })
