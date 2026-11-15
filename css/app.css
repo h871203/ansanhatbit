@@ -306,3 +306,75 @@ textarea { resize: vertical; line-height: 1.5; }
 .viewer-stage.zoomed { display: block; }
 .viewer-stage.zoomed img { max-width: none; max-height: none; width: 200%; }
 .viewer-caption { padding: 4px 16px; text-align: center; min-height: 1.6em; }
+
+/* ---------- 글자 주보 ---------- */
+#bulletinDetail { overflow-wrap: break-word; }
+.bl-cover { text-align: center; padding: 4px 0 18px; border-bottom: 1px solid var(--line); }
+.bl-meta { display: flex; justify-content: space-between; gap: 8px; font-size: 0.85rem; color: var(--muted); }
+.bl-church { margin-top: 14px; font-size: 0.9rem; color: var(--ink-soft); }
+.bl-church strong { font-size: 1.15rem; color: var(--ink); margin-left: 4px; }
+.bl-motto { margin-top: 6px; font-size: 0.85rem; font-weight: 600; color: var(--sun-deep); }
+.bl-motto i { font-style: normal; margin: 0 8px; color: var(--muted); }
+.bl-title { margin-top: 22px; font-size: clamp(1.7rem, 7vw, 2.3rem); line-height: 1.25; text-wrap: balance; letter-spacing: -0.01em; }
+.bl-subtitle { margin-top: 4px; font-size: 1.1rem; font-weight: 700; color: var(--sun-deep); }
+.bl-message { margin: 14px auto 0; max-width: 30em; color: var(--ink-soft); text-wrap: pretty; }
+.bl-verse { margin: 16px auto 0; max-width: 30em; padding: 14px 16px; border-radius: 14px; background: var(--sun-soft);
+    font-size: 0.98rem; line-height: 1.7; text-align: left; text-wrap: pretty; }
+.bl-verse cite { display: block; margin-top: 6px; font-style: normal; font-weight: 700; font-size: 0.85rem; text-align: right; color: var(--sun-deep); }
+.bl-season { margin-top: 14px; font-size: 0.85rem; color: var(--muted); }
+
+.bl-h { margin: 30px 0 10px; font-size: 1.15rem; text-wrap: balance; }
+.bl-h small { font-size: 0.85rem; font-weight: 600; color: var(--muted); margin-left: 4px; }
+
+.bl-service { margin: 12px 0 18px; padding: 16px; border: 1px solid var(--line); border-radius: 16px; }
+.bl-service-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+.bl-service-head h4 { font-size: 1.1rem; text-wrap: balance; }
+.bl-time { font-weight: 700; color: var(--sun-deep); white-space: nowrap; }
+.bl-leader { margin-top: 2px; font-size: 0.88rem; color: var(--muted); }
+.bl-order { list-style: none; margin-top: 10px; }
+.bl-part { margin: 16px 0 4px; padding-bottom: 4px; font-size: 0.85rem; font-weight: 700; color: var(--sun-deep); border-bottom: 1px dashed var(--line); }
+.bl-part:first-child { margin-top: 4px; }
+.bl-item { display: grid; grid-template-columns: 5.6em 1fr auto; column-gap: 10px; align-items: baseline; padding: 7px 0; }
+.bl-name { font-weight: 600; position: relative; }
+.bl-stand { position: absolute; left: -0.95em; font-size: 0.8em; color: var(--sun-deep); }
+.bl-detail { color: var(--ink-soft); }
+.bl-who { font-size: 0.9rem; color: var(--muted); text-align: right; white-space: nowrap; }
+.bl-sermon { margin: 6px -10px; padding: 12px 10px; border-radius: 12px; background: var(--sun-soft); }
+.bl-sermon { grid-template-columns: 1fr auto; }
+.bl-sermon .bl-detail { grid-column: 1 / -1; grid-row: 2; margin-top: 4px; font-size: 1.2rem; font-weight: 800; color: var(--ink); text-wrap: balance; }
+.bl-ref { display: block; }
+.nowrap { white-space: nowrap; }
+.bl-passages { grid-column: 1 / -1; }
+.bl-passages .passage { margin: 2px 0; }
+.bl-passages .passage summary { font-size: 0.92rem; color: var(--sun-deep); }
+.bl-order { padding-left: 0.95em; }
+.bl-note { margin-top: 10px; font-size: 0.82rem; color: var(--muted); }
+.bl-verse-small { margin-top: 10px; font-size: 0.95rem; color: var(--ink-soft); }
+.bl-verse-small span { font-size: 0.85rem; color: var(--muted); white-space: nowrap; }
+
+.bl-rows { display: grid; grid-template-columns: 1fr 1fr; gap: 0 16px; }
+.bl-rows div { display: flex; justify-content: space-between; gap: 10px; padding: 9px 0; border-bottom: 1px solid var(--line); }
+.bl-rows dt { color: var(--muted); }
+.bl-rows dd { font-weight: 600; text-align: right; }
+.bl-news { padding-left: 1.4em; }
+.bl-news li { margin: 8px 0; padding-left: 4px; text-wrap: pretty; }
+.bl-news li::marker { font-weight: 700; color: var(--sun-deep); }
+
+.bl-foot { margin-top: 32px; padding-top: 18px; border-top: 1px solid var(--line); text-align: center; font-size: 0.92rem; color: var(--ink-soft); }
+.bl-foot p { margin: 4px 0; }
+.bl-goal { font-weight: 700; color: var(--ink); text-wrap: balance; }
+.bl-account { margin: 14px auto; padding: 14px; max-width: 22em; border-radius: 14px; background: var(--sun-soft); display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.bl-account span { font-size: 0.85rem; color: var(--muted); }
+.bl-account .bl-bank { font-size: 0.95rem; color: var(--ink-soft); }
+.bl-account strong { font-size: 1.2rem; color: var(--ink); letter-spacing: 0.02em; }
+.bl-copy { font-size: clamp(0.9rem, 3.6vw, 1rem); padding: 8px 18px; }
+.bl-photos { margin-top: 22px; }
+.bl-photos summary { cursor: pointer; font-weight: 600; color: var(--muted); padding: 10px 0; }
+
+@media (max-width: 420px) {
+    .bl-service { padding: 14px 12px; }
+    .bl-item { grid-template-columns: 4.9em 1fr auto; column-gap: 8px; }
+    .bl-sermon { grid-template-columns: 1fr auto; }
+    .bl-who { font-size: 0.84rem; }
+    .bl-rows { grid-template-columns: 1fr; }
+}

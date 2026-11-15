@@ -653,7 +653,7 @@
 
     function passageBlock(p) {
         if (!p) return '';
-        return '<details class="passage"><summary>📖 ' + esc(Bible.label(p)) + ' 본문 보기</summary>' +
+        return '<details class="passage"><summary>📖 ' + esc(Bible.label(p)) + ' <span class="nowrap">본문 보기</span></summary>' +
             passageHtml(p) + englishLink(p) + '</details>';
     }
 
@@ -791,6 +791,34 @@
     function bulletins() {
         return ((data.bulletins && data.bulletins.bulletins) || []).slice().sort(function (a, b) { return a.date < b.date ? 1 : -1; });
     }
+    // 글자로 옮긴 주보 (예배 순서·소식·봉사위원). 종이 사진은 맨 아래 접어 둠
+    function bulletinRows(rows) {
+        return '<dl class="bl-rows">' + rows.map(function (r) {
+            return '<div><dt>' + esc(r.role) + '</dt><dd>' + esc(r.names) + '</dd></div>';
+        }).join('') + '</dl>';
+    }
+    function bulletinService(sv) {
+        var hasStand = false;
+        var rows = (sv.order || []).map(function (r) {
+            if (r.part) return '<li class="bl-part">' + esc(r.part) + '</li>';
+            if (r.stand) hasStand = true;
+            var ps = r.passages || [];
+            var detail = r.detail ? esc(r.detail) : ps.map(function (p) { return '<span class="bl-ref">' + esc(Bible.label(p)).replace(/(\S*–\S*)/g, '<span class="nowrap">$1</span>') + '</span>'; }).join('');
+            return '<li class="bl-item' + (r.highlight ? ' bl-sermon' : '') + '">' +
+                '<span class="bl-name">' + (r.stand ? '<span class="bl-stand" aria-label="일어서서">※</span>' : '') + esc(r.item) + '</span>' +
+                '<span class="bl-detail">' + detail + '</span>' +
+                '<span class="bl-who">' + esc(r.who || '') + '</span>' +
+                (ps.length ? '<div class="bl-passages">' + ps.map(passageBlock).join('') + '</div>' : '') +
+                '</li>';
+        }).join('');
+        return '<section class="bl-service">' +
+            '<div class="bl-service-head"><h4>' + esc(sv.name) + '</h4><span class="bl-time">' + esc(sv.time || '') + '</span></div>' +
+            ((sv.note || sv.leader) ? '<p class="bl-leader">' + esc([sv.note, sv.leader].filter(Boolean).join(' · ')) + '</p>' : '') +
+            '<ol class="bl-order">' + rows + '</ol>' +
+            (hasStand ? '<p class="bl-note">※ 표시는 일어서서 합니다.</p>' : '') +
+            (sv.verse ? '<p class="bl-verse-small">“' + esc(sv.verse.text) + '” <span>' + esc(sv.verse.ref) + '</span></p>' : '') +
+            '</section>';
+    }
     function renderBulletin(i) {
         var list = bulletins();
         var b = list[i];
@@ -799,22 +827,54 @@
             $('bulletinList').innerHTML = '';
             return;
         }
+        var c = data.church || {}, th = b.theme || {}, acc = c.offeringAccount;
         var pages = b.pages || [];
-        $('bulletinDetail').innerHTML =
-            '<div class="card-kicker">' + (i === 0 ? '이번 주 주보 · ' : '') + koDate(b.date) + '</div>' +
-            '<h3 class="sermon-title">' + esc(b.title || '주보') + '</h3>' +
-            (pages.length ? '<p class="muted small">사진을 누르면 크게 볼 수 있습니다.</p>' : '') +
+        var html =
+            '<header class="bl-cover">' +
+                '<div class="bl-meta"><span>' + esc(b.issue || '') + '</span><span>' + koDate(b.date) + '</span></div>' +
+                '<p class="bl-church">' + esc(c.denomination || '') + ' <strong>' + esc(c.name || '') + '</strong></p>' +
+                (c.motto ? '<p class="bl-motto">' + c.motto.map(esc).join('<i>·</i>') + '</p>' : '') +
+                '<h3 class="bl-title">' + esc(th.title || b.title || '주보') + '</h3>' +
+                (th.subtitle ? '<p class="bl-subtitle">' + esc(th.subtitle) + '</p>' : '') +
+                (th.message ? '<p class="bl-message">' + esc(th.message) + '</p>' : '') +
+                (th.verse ? '<blockquote class="bl-verse">' + esc(th.verse.text) + '<cite>' + esc(th.verse.ref) + '</cite></blockquote>' : '') +
+                (b.churchYear ? '<p class="bl-season">오늘은 ' + esc(b.churchYear) + '입니다' + (b.altarColor ? ' · 강단색 ' + esc(b.altarColor) : '') + '</p>' : '') +
+            '</header>';
+        if ((b.services || []).length) html += '<h4 class="bl-h">🙏 예배 순서</h4>' + b.services.map(bulletinService).join('');
+        if ((b.servers || []).length) html += '<h4 class="bl-h">🤝 오늘 섬기는 분</h4>' + bulletinRows(b.servers);
+        if ((b.news || []).length) html += '<h4 class="bl-h">📢 교회 소식</h4><ol class="bl-news">' +
+            b.news.map(function (n) { return '<li>' + esc(n) + '</li>'; }).join('') + '</ol>';
+        if (b.nextServers) html += '<h4 class="bl-h">📅 다음 주 봉사위원 <small>' + koDate(b.nextServers.date) + '</small></h4>' +
+            bulletinRows(b.nextServers.rows || []);
+        html += '<footer class="bl-foot">' +
+            (c.goal ? '<p class="bl-goal">목표 “' + esc(c.goal) + '”</p>' : '') +
+            (c.pastor ? '<p>담임목사 ' + esc(c.pastor) + '</p>' : '') +
+            (acc ? '<div class="bl-account"><span>온라인 후원계좌</span><span class="bl-bank">' + esc(acc.bank) + '</span><strong class="nowrap">' + esc(acc.number) + '</strong>' +
+                '<button type="button" class="btn bl-copy" data-copy="' + esc(acc.number) + '">계좌번호 복사</button></div>' : '') +
+            (c.address ? '<p>' + esc(c.address) + '</p>' : '') +
+            (c.phone ? '<p><a href="tel:' + esc(c.phone) + '">📞 ' + esc(c.phone) + '</a></p>' : '') +
+            '</footer>';
+        if (pages.length) html += '<details class="bl-photos"><summary>종이 주보 사진 보기</summary>' +
             pages.map(function (src, j) {
                 return '<img class="bulletin-page" loading="lazy" data-i="' + j + '" src="' + esc(src) + '" alt="주보 ' + (j + 1) + '쪽">';
-            }).join('') +
-            (b.pdf ? '<a class="btn block" target="_blank" rel="noopener" href="' + esc(b.pdf) + '">📄 PDF로 보기</a>' : '');
+            }).join('') + '</details>';
+        if (b.pdf) html += '<a class="btn block" target="_blank" rel="noopener" href="' + esc(b.pdf) + '">📄 PDF로 보기</a>';
+        $('bulletinDetail').innerHTML = html;
+        fillPassages($('bulletinDetail'));
         $('bulletinDetail').onclick = function (e) {
+            var copy = e.target.closest('.bl-copy');
+            if (copy) {
+                var done = function () { copy.textContent = '복사했어요 ✓'; setTimeout(function () { copy.textContent = '계좌번호 복사'; }, 2000); };
+                if (navigator.clipboard) navigator.clipboard.writeText(copy.dataset.copy).then(done, function () { prompt('계좌번호', copy.dataset.copy); });
+                else prompt('계좌번호', copy.dataset.copy);
+                return;
+            }
             var img = e.target.closest('.bulletin-page');
             if (!img) return;
             openViewer(pages.map(function (src, j) { return { src: src, caption: koDate(b.date) + ' 주보 ' + (j + 1) + '쪽' }; }), +img.dataset.i);
         };
         $('bulletinList').innerHTML = list.map(function (x, j) {
-            return '<li><button class="' + (j === i ? 'active' : '') + '" data-i="' + j + '"><span>' + esc(x.title || '주보') +
+            return '<li><button class="' + (j === i ? 'active' : '') + '" data-i="' + j + '"><span>' + esc((x.theme && x.theme.title) || x.title || '주보') +
                 '</span><small>' + koDate(x.date) + '</small></button></li>';
         }).join('');
     }
