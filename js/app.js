@@ -58,7 +58,7 @@
     });
 
     // ---------- 화면 이동 ----------
-    var VIEWS = ['home', 'bible', 'sermon', 'qt', 'prayer', 'church', 'bulletin', 'photos'];
+    var VIEWS = ['home', 'bible', 'sermon', 'qt', 'prayer', 'church', 'bulletin', 'photos', 'share', 'share-admin'];
     function route() {
         var name = (location.hash || '#home').slice(1);
         if (VIEWS.indexOf(name) < 0) name = 'home';
@@ -69,6 +69,8 @@
         if (name === 'bible') showChapter(); // iframe은 성경 화면을 열 때 불러옴
         else { stopSpeech(); $('kjvAudio').pause(); }
         if (name !== 'photos') showAlbum(null);
+        if (name === 'share') openShare();
+        if (name === 'share-admin') openAdmin();
         window.scrollTo(0, 0);
     }
     window.addEventListener('hashchange', route);
@@ -883,6 +885,163 @@
         renderBulletin(+b.dataset.i); window.scrollTo(0, 0);
     });
 
+    // ---------- 감사·기도 나눔 ----------
+    // 글은 나눔 Worker(church.json의 shareApi)에 저장. 교회 암호는 이 기기에 기억, 관리자 암호는 창을 닫으면 잊음
+    var shareKind = 'thanks', shareFilter = 'all', sharePosts = [];
+    var KIND_LABEL = { thanks: '💛 감사', prayer: '🙏 기도' };
+    function shareApi(path, opts, admin) {
+        var base = ((data.church && data.church.shareApi) || '').replace(/\/+$/, '');
+        if (!base) return Promise.reject(new Error('no_api'));
+        opts = opts || {};
+        var headers = { 'Content-Type': 'application/json' };
+        if (admin) headers['X-Admin-Code'] = sessionGet('adminCode');
+        else headers['X-Church-Code'] = store.get('churchCode', '');
+        return fetch(base + path, { method: opts.method || 'GET', headers: headers, body: opts.body ? JSON.stringify(opts.body) : undefined })
+            .then(function (r) {
+                return r.json().catch(function () { return {}; }).then(function (d) {
+                    if (!r.ok) { var e = new Error(d.error || ('http_' + r.status)); e.status = r.status; throw e; }
+                    return d;
+                });
+            });
+    }
+    function sessionGet(k) { try { return sessionStorage.getItem(k) || ''; } catch (e) { return ''; } }
+    function sessionSet(k, v) { try { if (v) sessionStorage.setItem(k, v); else sessionStorage.removeItem(k); } catch (e) { /* 저장 불가 */ } }
+    function shareError(e) {
+        if (e.status === 503) return '나눔판을 준비하고 있습니다. 조금만 기다려 주세요.';
+        if (e.message === 'no_api') return '나눔판이 아직 연결되지 않았습니다.';
+        return '인터넷 연결을 확인하고 다시 시도해 주세요.';
+    }
+    function timeAgo(iso) {
+        var d = new Date(iso), mins = Math.floor((Date.now() - d) / 60000);
+        if (mins < 60) return mins < 1 ? '방금' : mins + '분 전';
+        if (mins < 1440) return Math.floor(mins / 60) + '시간 전';
+        return koDate(d);
+    }
+    function postHtml(p, admin) {
+        var amened = (store.get('amened', []) || []).indexOf(p.id) >= 0;
+        var amenLabel = p.kind === 'prayer' ? '🙏 함께 기도해요' : '👏 함께 감사해요';
+        return '<li class="share-post ' + esc(p.kind) + '">' +
+            '<div class="share-post-head"><span class="share-kind">' + KIND_LABEL[p.kind] + '</span>' +
+            '<strong>' + esc(p.name || '익명') + '</strong><small>' + esc(timeAgo(p.created)) + '</small></div>' +
+            '<p class="share-text">' + esc(p.text) + '</p>' +
+            (admin
+                ? '<div class="share-actions">' +
+                    (p.status !== 'approved' ? '<button class="btn btn-primary" data-act="approved" data-id="' + p.id + '">올리기</button>' : '') +
+                    '<button class="btn" data-act="hidden" data-id="' + p.id + '">' + (p.status === 'approved' ? '내리기' : '올리지 않기') + '</button></div>'
+                : '<button class="btn share-amen' + (amened ? ' done' : '') + '" data-id="' + p.id + '"' + (amened ? ' disabled' : '') + '>' +
+                    amenLabel + ' <b>' + (p.amen || 0) + '</b></button>') +
+            '</li>';
+    }
+    function renderShareList() {
+        var list = sharePosts.filter(function (p) { return shareFilter === 'all' || p.kind === shareFilter; });
+        $('shareList').innerHTML = list.length ? list.map(function (p) { return postHtml(p); }).join('')
+            : '<li class="empty-note">아직 올라온 나눔이 없습니다. 첫 감사를 나눠 주세요.</li>';
+    }
+    function loadShare() {
+        $('shareList').innerHTML = '<li class="empty-note">불러오는 중…</li>';
+        return shareApi('/posts').then(function (d) {
+            sharePosts = d.posts || [];
+            renderShareList();
+            if (sharePosts[0]) $('homeShare').textContent = '최근 나눔: ' + sharePosts[0].text.slice(0, 30) + (sharePosts[0].text.length > 30 ? '…' : '');
+        });
+    }
+    function openShare() {
+        var has = !!store.get('churchCode', '');
+        $('shareLogin').hidden = has;
+        $('shareMain').hidden = !has;
+        $('shareNotice').hidden = true;
+        if (!has) return;
+        loadShare().catch(function (e) {
+            if (e.status === 401) { store.set('churchCode', ''); $('shareLoginMsg').textContent = '암호가 바뀌었습니다. 다시 넣어 주세요.'; openShare(); }
+            else $('shareList').innerHTML = '<li class="empty-note">' + esc(shareError(e)) + '</li>';
+        });
+    }
+    $('shareLoginForm').addEventListener('submit', function (e) {
+        e.preventDefault();
+        var code = $('shareCodeInput').value.trim();
+        if (!code) return;
+        store.set('churchCode', code);
+        $('shareLoginMsg').textContent = '확인하는 중…';
+        shareApi('/posts').then(function () {
+            $('shareCodeInput').value = ''; $('shareLoginMsg').textContent = '';
+            openShare();
+        }).catch(function (err) {
+            store.set('churchCode', '');
+            if (err.status === 401) { $('shareCodeInput').value = ''; $('shareCodeInput').focus(); }
+            $('shareLoginMsg').textContent = err.status === 401 ? '암호가 맞지 않습니다. 다시 확인해 주세요.' : shareError(err);
+        });
+    });
+    $('shareWriteBtn').addEventListener('click', function () {
+        $('shareForm').hidden = false; $('shareWriteBtn').hidden = true; $('shareNotice').hidden = true;
+        $('shareText').focus();
+    });
+    $('shareCancel').addEventListener('click', function () { $('shareForm').hidden = true; $('shareWriteBtn').hidden = false; });
+    $('shareForm').querySelector('.share-kinds').addEventListener('click', function (e) {
+        var b = e.target.closest('button'); if (!b) return;
+        shareKind = b.dataset.kind;
+        this.querySelectorAll('button').forEach(function (x) { x.classList.toggle('active', x === b); });
+        $('shareText').placeholder = shareKind === 'prayer' ? '함께 기도할 제목을 적어 주세요' : '감사한 일을 적어 주세요';
+    });
+    $('shareForm').addEventListener('submit', function (e) {
+        e.preventDefault();
+        var text = $('shareText').value.trim();
+        if (text.length < 2) { $('shareText').focus(); return; }
+        var btn = this.querySelector('.btn-primary'); btn.disabled = true;
+        shareApi('/posts', { method: 'POST', body: { kind: shareKind, name: $('shareName').value.trim(), text: text } }).then(function () {
+            $('shareText').value = '';
+            $('shareForm').hidden = true; $('shareWriteBtn').hidden = false;
+            $('shareNotice').textContent = '고맙습니다. 목사님이 확인하신 뒤 나눔판에 올라갑니다.';
+            $('shareNotice').hidden = false;
+        }).catch(function (err) { alert(shareError(err)); }).then(function () { btn.disabled = false; });
+    });
+    $('shareFilter').addEventListener('click', function (e) {
+        var b = e.target.closest('button'); if (!b) return;
+        shareFilter = b.dataset.f;
+        this.querySelectorAll('button').forEach(function (x) { x.classList.toggle('active', x === b); });
+        renderShareList();
+    });
+    $('shareList').addEventListener('click', function (e) {
+        var b = e.target.closest('.share-amen'); if (!b || b.disabled) return;
+        var id = +b.dataset.id;
+        b.disabled = true; b.classList.add('done');
+        shareApi('/posts/' + id + '/amen', { method: 'POST' }).then(function (d) {
+            var list = store.get('amened', []) || []; list.push(id); store.set('amened', list.slice(-300));
+            sharePosts.forEach(function (p) { if (p.id === id) p.amen = d.amen; });
+            b.querySelector('b').textContent = d.amen;
+        }).catch(function () { b.disabled = false; b.classList.remove('done'); });
+    });
+
+    function openAdmin() {
+        var has = !!sessionGet('adminCode');
+        $('adminLogin').hidden = has; $('adminMain').hidden = !has;
+        if (!has) return;
+        $('adminPending').innerHTML = '<li class="empty-note">불러오는 중…</li>';
+        shareApi('/admin/posts', null, true).then(function (d) {
+            var posts = d.posts || [];
+            var pending = posts.filter(function (p) { return p.status === 'pending'; });
+            var approved = posts.filter(function (p) { return p.status === 'approved'; });
+            $('adminPending').innerHTML = pending.length ? pending.map(function (p) { return postHtml(p, true); }).join('')
+                : '<li class="empty-note">기다리는 글이 없습니다.</li>';
+            $('adminApproved').innerHTML = approved.length ? approved.map(function (p) { return postHtml(p, true); }).join('')
+                : '<li class="empty-note">올라간 글이 없습니다.</li>';
+        }).catch(function (e) {
+            if (e.status === 401) { sessionSet('adminCode', ''); $('adminLoginMsg').textContent = '관리자 암호가 맞지 않습니다.'; openAdmin(); }
+            else $('adminPending').innerHTML = '<li class="empty-note">' + esc(shareError(e)) + '</li>';
+        });
+    }
+    $('adminLoginForm').addEventListener('submit', function (e) {
+        e.preventDefault();
+        var code = $('adminCodeInput').value.trim(); if (!code) return;
+        sessionSet('adminCode', code); $('adminCodeInput').value = ''; $('adminLoginMsg').textContent = '';
+        openAdmin();
+    });
+    $('adminMain').addEventListener('click', function (e) {
+        var b = e.target.closest('[data-act]'); if (!b) return;
+        b.disabled = true;
+        shareApi('/admin/posts/' + b.dataset.id, { method: 'POST', body: { status: b.dataset.act } }, true)
+            .then(openAdmin).catch(function (err) { b.disabled = false; alert(shareError(err)); });
+    });
+
     // ---------- 교회 앨범 ----------
     function albums() {
         return ((data.gallery && data.gallery.albums) || []).slice().sort(function (a, b) { return a.date < b.date ? 1 : -1; });
@@ -990,6 +1149,7 @@
         renderQt(currentQt());
         renderChurch();
         renderBulletin(0);
+        if (store.get('churchCode', '') && data.church && data.church.shareApi) loadShare().catch(function () { /* 홈 미리보기만 */ });
         renderAlbums();
         route();
         checkPrayerTime();

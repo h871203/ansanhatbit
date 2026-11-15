@@ -378,3 +378,31 @@ textarea { resize: vertical; line-height: 1.5; }
     .bl-who { font-size: 0.84rem; }
     .bl-rows { grid-template-columns: 1fr; }
 }
+
+/* ---------- 감사·기도 나눔 ---------- */
+.share-home p { color: var(--ink-soft); }
+.share-form { display: flex; flex-direction: column; gap: 10px; margin-top: 8px; }
+.share-write-btn { margin-bottom: 14px; min-height: 56px; font-size: 1.05rem; }
+.share-kinds { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.share-kinds button { min-height: 56px; border: 2px solid var(--line); border-radius: 14px; background: var(--card); font-weight: 700;
+    font-size: clamp(0.95rem, 4vw, 1.05rem); cursor: pointer; text-wrap: balance; }
+.share-kinds button.active { border-color: var(--sun); background: var(--sun-soft); }
+.share-actions { display: flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap; }
+.share-actions .btn { flex: 1 1 8em; }
+.share-notice { margin: 0 0 14px; padding: 14px 16px; border-radius: 14px; background: var(--sun-soft); font-weight: 600; text-wrap: pretty; }
+.share-filter { margin-bottom: 14px; grid-template-columns: repeat(3, 1fr); }
+.share-list { list-style: none; }
+.share-post { margin-bottom: 12px; padding: 16px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--card); }
+.share-post.prayer { border-left: 4px solid #8fb3e0; }
+.share-post.thanks { border-left: 4px solid var(--sun); }
+.share-post-head { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+.share-kind { font-size: 0.85rem; font-weight: 700; color: var(--sun-deep); }
+.share-post.prayer .share-kind { color: #4a78b5; }
+.share-post-head small { margin-left: auto; color: var(--muted); font-size: 0.82rem; white-space: nowrap; }
+.share-text { margin: 8px 0 12px; font-size: 1.05rem; line-height: 1.7; white-space: pre-line; text-wrap: pretty; }
+.share-amen { min-height: 46px; font-size: clamp(0.9rem, 3.8vw, 1rem); }
+.share-amen b { margin-left: 4px; color: var(--sun-deep); }
+.share-amen.done, .share-amen.done:disabled { opacity: 1; background: var(--sun-soft); border-color: var(--sun); color: var(--ink); }
+@media (prefers-color-scheme: dark) {
+    .share-post.prayer .share-kind { color: #9cc0ee; }
+}

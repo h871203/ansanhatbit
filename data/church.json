@@ -63,5 +63,6 @@
     "bank": "MG새마을금고",
     "number": "9002-1877-0503-8",
     "holder": "안산햇빛교회"
-  }
+  },
+  "shareApi": "https://ansanhatbit-share.h890607.workers.dev"
 }

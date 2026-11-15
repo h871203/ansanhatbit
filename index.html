@@ -84,6 +84,11 @@
                 </a>
             </div>
 
+            <a class="card share-home" href="#share">
+                <div class="card-kicker">💛 감사·기도 나눔</div>
+                <p id="homeShare">감사한 일과 기도 제목을 함께 나눠요</p>
+            </a>
+
             <a class="card" href="#church">
                 <div class="card-kicker">📢 교회 소식</div>
                 <ul class="plain-list" id="homeNews"></ul>
@@ -224,6 +229,73 @@
             <article class="card" id="bulletinDetail"></article>
             <h3 class="section-title">지난 주보</h3>
             <ul class="link-list" id="bulletinList"></ul>
+        </section>
+
+        <!-- 감사·기도 나눔 -->
+        <section class="view" id="view-share" hidden>
+            <h2 class="view-title">감사·기도 나눔</h2>
+
+            <div class="card" id="shareLogin" hidden>
+                <div class="card-kicker">🔑 교회 암호</div>
+                <p>우리 교회 성도만 볼 수 있는 나눔판입니다. 교회에서 알려 드린 암호를 한 번만 넣어 주세요.</p>
+                <form id="shareLoginForm" class="share-form">
+                    <input id="shareCodeInput" type="password" autocomplete="off" placeholder="교회 암호" aria-label="교회 암호">
+                    <button class="btn btn-primary block">들어가기</button>
+                </form>
+                <p class="muted small" id="shareLoginMsg"></p>
+            </div>
+
+            <div id="shareMain" hidden>
+                <button class="btn btn-primary block share-write-btn" id="shareWriteBtn">✏️ 나눔 글 쓰기</button>
+
+                <form class="card share-form" id="shareForm" hidden>
+                    <div class="card-kicker">어떤 글인가요?</div>
+                    <div class="share-kinds">
+                        <button type="button" data-kind="thanks" class="active">💛 감사해요</button>
+                        <button type="button" data-kind="prayer">🙏 기도해 주세요</button>
+                    </div>
+                    <label class="field">이름
+                        <input id="shareName" maxlength="20" placeholder="비워 두면 '익명'으로 올라가요">
+                    </label>
+                    <label class="field">내용
+                        <textarea id="shareText" rows="5" maxlength="500" placeholder="감사한 일이나 기도 제목을 적어 주세요"></textarea>
+                    </label>
+                    <p class="muted small">목사님이 확인하신 뒤 나눔판에 올라갑니다.</p>
+                    <div class="share-actions">
+                        <button type="button" class="btn" id="shareCancel">취소</button>
+                        <button class="btn btn-primary">올리기</button>
+                    </div>
+                </form>
+                <p class="share-notice" id="shareNotice" hidden></p>
+
+                <div class="segmented share-filter" id="shareFilter">
+                    <button data-f="all" class="active">전체</button>
+                    <button data-f="thanks">감사</button>
+                    <button data-f="prayer">기도</button>
+                </div>
+                <ul class="share-list" id="shareList"></ul>
+                <p class="center"><a class="muted small" href="#share-admin">관리자</a></p>
+            </div>
+        </section>
+
+        <!-- 나눔 관리자 -->
+        <section class="view" id="view-share-admin" hidden>
+            <h2 class="view-title">나눔 글 확인</h2>
+            <div class="card" id="adminLogin">
+                <div class="card-kicker">🔒 관리자 암호</div>
+                <form id="adminLoginForm" class="share-form">
+                    <input id="adminCodeInput" type="password" autocomplete="off" placeholder="관리자 암호" aria-label="관리자 암호">
+                    <button class="btn btn-primary block">확인</button>
+                </form>
+                <p class="muted small" id="adminLoginMsg"></p>
+            </div>
+            <div id="adminMain" hidden>
+                <h3 class="section-title">확인 기다리는 글</h3>
+                <ul class="share-list" id="adminPending"></ul>
+                <h3 class="section-title">나눔판에 올라간 글</h3>
+                <ul class="share-list" id="adminApproved"></ul>
+                <a class="btn block" href="#share">← 나눔판으로</a>
+            </div>
         </section>
 
         <!-- 교회 앨범 -->
