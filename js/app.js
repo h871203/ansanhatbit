@@ -76,36 +76,69 @@
     window.addEventListener('hashchange', route);
 
     // ---------- 홈 ----------
+    // 다음 예배: church.json worship 중 day·at 이 있는 것에서 지금 이후 가장 가까운 것
+    function nextWorship(now) {
+        var list = ((data.church && data.church.worship) || []).filter(function (w) { return w.day != null && w.at; });
+        var best = null;
+        list.forEach(function (w) {
+            var hm = w.at.split(':');
+            for (var d = 0; d < 8; d++) {
+                var t = new Date(now.getFullYear(), now.getMonth(), now.getDate() + d, +hm[0], +hm[1]);
+                if (t.getDay() === w.day && t > now) { if (!best || t < best.at) best = { w: w, at: t }; break; }
+            }
+        });
+        return best;
+    }
+    function renderNextWorship() {
+        var n = nextWorship(new Date());
+        if (!n) { $('nextWhen').textContent = '주일 오전 11:00'; $('nextWhat').textContent = '주일 오전 예배'; return; }
+        var today = new Date(), dd = Math.round((new Date(n.at.getFullYear(), n.at.getMonth(), n.at.getDate()) - new Date(today.getFullYear(), today.getMonth(), today.getDate())) / 86400000);
+        var day = dd === 0 ? '오늘' : dd === 1 ? '내일' : koDate(n.at);
+        $('nextWhen').textContent = day + ' ' + timeLabel(n.w.at);
+        $('nextWhat').textContent = n.w.name + (dd > 1 ? '' : ' · ' + koDate(n.at));
+    }
+
     function renderHome() {
         var c = data.church || {};
         var now = new Date();
         $('todayLabel').textContent = now.getFullYear() + '년 ' + koDate(now);
         $('churchName').textContent = c.name || '안산햇빛교회';
         $('heroTitle').textContent = c.name || '안산햇빛교회';
-        $('slogan').textContent = c.slogan || '';
-        if (c.memoryVerse) {
-            $('memoryText').textContent = '“' + c.memoryVerse.text + '”';
-            $('memoryRef').textContent = c.memoryVerse.ref;
-        }
+        $('homeSub').textContent = [c.denomination, c.pastor && '담임목사 ' + c.pastor.replace(/\s*목사$/, '')].filter(Boolean).join(' · ');
+        renderNextWorship();
 
         var plan = Bible.planForDay(dayOfYear(now));
         if (plan.length) $('homePlan').textContent = planRangeLabel(plan);
 
         var s = sermons()[0];
         if (s) $('homeSermon').textContent = s.title;
-        var q = currentQt();
-        if (q) $('homeQt').textContent = Bible.label(q.passage);
 
         var b = bulletins()[0];
-        if (b) $('homeBulletin').textContent = koDate(b.date);
+        if (b) $('homeBulletin').textContent = (+b.date.slice(5, 7)) + '월 ' + (+b.date.slice(8)) + '일 주보';
         var a = albums()[0];
         if (a) $('homePhotos').textContent = a.title;
+
+        $('homeTimes').innerHTML = (c.worship || []).map(function (w) {
+            return '<div><dt>' + esc(w.name) + '</dt><dd>' + esc(w.time) + '</dd></div>';
+        }).join('');
+        $('homeAddr').textContent = c.address || '';
+        $('homePhone').textContent = c.phone || '';
+        $('homeMap').href = c.mapUrl || '#church';
+        $('homeFoot').innerHTML = (c.goal ? '<p>' + esc(c.goal) + '</p>' : '') +
+            '<p>' + [c.founded && '<span class="nowrap">' + esc(c.founded.replace(/^(\d+)-0?(\d+)-0?(\d+)$/, '$1년 $2월 $3일')) + ' 설립</span>']
+                .concat((c.motto || []).map(function (m) { return '<span class="nowrap">' + esc(m) + '</span>'; })).filter(Boolean).join(' · ') + '</p>';
 
         var notices = (data.news && data.news.notices) || [];
         $('homeNews').innerHTML = notices.slice(0, 3).map(function (n) {
             return '<li>' + esc(n.title) + '</li>';
         }).join('') || '<li class="muted">새 소식이 없습니다</li>';
     }
+    $('homeCopyPhone').addEventListener('click', function () {
+        var btn = this, label = btn.querySelector('span'), num = $('homePhone').textContent;
+        var done = function () { label.textContent = '복사했어요'; setTimeout(function () { label.textContent = '번호 복사'; }, 2000); };
+        var fallback = function () { var r = document.createRange(); r.selectNodeContents($('homePhone')); var sel = getSelection(); sel.removeAllRanges(); sel.addRange(r); };
+        if (navigator.clipboard) navigator.clipboard.writeText(num).then(done, fallback); else fallback();
+    });
 
     // ---------- 기도 알림 ----------
     function prayerTimes() { return (data.church && data.church.prayerTimes) || ['10:00', '22:00']; }
@@ -967,7 +1000,7 @@
         return shareApi('/posts').then(function (d) {
             sharePosts = d.posts || [];
             renderShareList();
-            if (sharePosts[0]) $('homeShare').textContent = '최근 나눔: ' + sharePosts[0].text.slice(0, 30) + (sharePosts[0].text.length > 30 ? '…' : '');
+            if (sharePosts[0]) $('homeShare').textContent = sharePosts[0].text.slice(0, 18) + (sharePosts[0].text.length > 18 ? '…' : '');
         });
     }
     function openShare() {
@@ -1160,7 +1193,7 @@
         renderAlbums();
         route();
         checkPrayerTime();
-        setInterval(checkPrayerTime, 20000);
+        setInterval(function () { checkPrayerTime(); renderNextWorship(); }, 20000);
         if (/[?&]pray=1/.test(location.search)) showPrayerOverlay(); // 알림을 눌러 들어온 경우
     });
 })();

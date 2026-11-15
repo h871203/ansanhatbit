@@ -30,70 +30,65 @@
     <main id="app">
         <!-- 홈 -->
         <section class="view" id="view-home">
-            <div class="hero">
+            <svg width="0" height="0" class="sprite" aria-hidden="true">
+                <defs>
+                    <symbol id="i-mic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v4"/></symbol>
+                    <symbol id="i-paper" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h9l5 5v15H6z"/><path d="M14 2v6h6M9 13h8M9 17h8"/></symbol>
+                    <symbol id="i-book" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15H6.5A2.5 2.5 0 0 0 4 20.5z"/><path d="M4 20.5A2.5 2.5 0 0 0 6.5 23H20v-5"/></symbol>
+                    <symbol id="i-heart" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></symbol>
+                    <symbol id="i-photo" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="10" r="1.6"/><path d="M21 16l-5-5-8 8"/></symbol>
+                    <symbol id="i-pin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s7-6.2 7-12a7 7 0 0 0-14 0c0 5.8 7 12 7 12z"/><circle cx="12" cy="10" r="2.5"/></symbol>
+                    <symbol id="i-copy" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="8" width="13" height="13" rx="2"/><path d="M16 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h3"/></symbol>
+                </defs>
+            </svg>
+
+            <div class="home-hello">
                 <p class="hero-date" id="todayLabel"></p>
                 <p class="hero-hello" id="heroHello" hidden></p>
                 <h1 id="heroTitle">안산햇빛교회</h1>
-                <p class="hero-slogan" id="slogan"></p>
+                <p class="home-sub" id="homeSub">기독교대한감리회</p>
             </div>
 
-            <a class="card prayer-card" href="#prayer">
-                <div class="card-kicker">🙏 하루 두 번, 교회를 위한 기도</div>
-                <div class="prayer-times" id="homePrayerTimes"></div>
-                <p class="prayer-next" id="prayerNext"></p>
+            <a class="next-worship" href="#church">
+                <span class="nw-k">다음 예배</span>
+                <strong class="nw-when" id="nextWhen"></strong>
+                <span class="nw-what" id="nextWhat"></span>
             </a>
 
-            <div class="card verse-card">
-                <div class="card-kicker">이번 주 암송 말씀</div>
-                <p class="verse-text" id="memoryText"></p>
-                <p class="verse-ref" id="memoryRef"></p>
+            <div class="big-btns">
+                <a class="big-btn main" href="#sermon"><svg class="bb-ic" aria-hidden="true"><use href="#i-mic"/></svg>이번 주 말씀<small id="homeSermon">설교 요약 읽기</small></a>
+                <a class="big-btn" href="#bulletin"><svg class="bb-ic" aria-hidden="true"><use href="#i-paper"/></svg>주보 보기<small id="homeBulletin">예배 순서·소식</small></a>
+                <a class="big-btn" href="#bible"><svg class="bb-ic" aria-hidden="true"><use href="#i-book"/></svg>성경 읽기<small id="homePlan">오늘의 통독</small></a>
+                <a class="big-btn" href="#share"><svg class="bb-ic" aria-hidden="true"><use href="#i-heart"/></svg>감사·기도 나눔<small id="homeShare">함께 기도해요</small></a>
+                <a class="big-btn wide" href="#photos"><svg class="bb-ic" aria-hidden="true"><use href="#i-photo"/></svg><span>교회 앨범<small id="homePhotos">행사 사진</small></span></a>
             </div>
 
-            <div class="grid-2">
-                <a class="tile" href="#bible">
-                    <span class="tile-icon">📖</span>
-                    <strong>성경 읽기</strong>
-                    <span id="homePlan">오늘의 통독</span>
-                </a>
-                <a class="tile" href="#sermon">
-                    <span class="tile-icon">🎙️</span>
-                    <strong>목사님 말씀</strong>
-                    <span id="homeSermon">이번 주 설교</span>
-                </a>
-                <a class="tile" href="#qt">
-                    <span class="tile-icon">✍️</span>
-                    <strong>오늘의 QT</strong>
-                    <span id="homeQt">말씀 묵상</span>
-                </a>
-                <a class="tile" href="#prayer">
-                    <span class="tile-icon">🕊️</span>
-                    <strong>중보기도</strong>
-                    <span>기도 제목</span>
-                </a>
-            </div>
-
-            <div class="grid-2">
-                <a class="tile" href="#bulletin">
-                    <span class="tile-icon">📰</span>
-                    <strong>이번 주 주보</strong>
-                    <span id="homeBulletin">주보 보기</span>
-                </a>
-                <a class="tile" href="#photos">
-                    <span class="tile-icon">📷</span>
-                    <strong>교회 앨범</strong>
-                    <span id="homePhotos">행사 사진</span>
-                </a>
-            </div>
-
-            <a class="card share-home" href="#share">
-                <div class="card-kicker">💛 감사·기도 나눔</div>
-                <p id="homeShare">감사한 일과 기도 제목을 함께 나눠요</p>
+            <a class="prayer-strip" href="#prayer">
+                <span class="ps-k">매일 함께 기도해요</span>
+                <span class="prayer-times" id="homePrayerTimes"></span>
+                <span class="prayer-next" id="prayerNext"></span>
             </a>
 
-            <a class="card" href="#church">
+            <section class="home-blk">
+                <h2>예배 시간</h2>
+                <dl class="home-times" id="homeTimes"></dl>
+            </section>
+
+            <section class="home-blk">
+                <h2>처음 오셨나요?</h2>
+                <p>언제든 환영합니다. 주일 오전 11시 예배에 오시면 안내위원이 자리를 안내해 드립니다.</p>
+                <h2 class="visit-h">오시는 길</h2>
+                <p class="home-addr" id="homeAddr"></p>
+                <div class="home-tel"><strong id="homePhone"></strong><button class="home-act" type="button" id="homeCopyPhone"><svg aria-hidden="true"><use href="#i-copy"/></svg><span>번호 복사</span></button></div>
+                <a class="home-act" id="homeMap" target="_blank" rel="noopener"><svg aria-hidden="true"><use href="#i-pin"/></svg><span>지도 보기</span></a>
+            </section>
+
+            <a class="card home-news" href="#church">
                 <div class="card-kicker">📢 교회 소식</div>
                 <ul class="plain-list" id="homeNews"></ul>
             </a>
+
+            <footer class="home-foot" id="homeFoot"></footer>
         </section>
 
         <!-- 성경 -->
