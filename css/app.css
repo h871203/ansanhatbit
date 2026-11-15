@@ -490,3 +490,22 @@ html[data-font="large"] .big-btn small, html[data-font="xlarge"] .big-btn small 
     background: var(--card); font-weight: 700; font-size: 1.02rem; text-align: center; text-wrap: balance; }
 .hymn-mini { display: inline-flex; align-items: center; gap: 2px; padding: 2px 8px; margin: 1px 0; border-radius: 999px; background: var(--sun-soft);
     color: var(--ink); font-weight: 700; white-space: nowrap; text-decoration: none; }
+.hymn-chip .hc-title { font-size: 0.78rem; font-weight: 700; line-height: 1.3; margin: 2px 0; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+.hs-list { grid-template-columns: repeat(auto-fill, minmax(6.4rem, 1fr)); }
+.hymn-chip { min-height: 5.2rem; }
+
+/* ---------- 찬송 플레이어 ---------- */
+.hymn-player { position: fixed; inset: 0; z-index: 65; display: flex; align-items: center; justify-content: center; background: rgba(20, 14, 6, 0.6);
+    padding: calc(12px + env(safe-area-inset-top)) max(12px, env(safe-area-inset-right)) calc(12px + env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left)); }
+.hp-box { width: 100%; max-width: 640px; max-height: 100%; overflow-y: auto; background: var(--card); border-radius: 22px; padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+.hp-bar { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.hp-num { display: block; font-size: 0.9rem; font-weight: 700; color: var(--sun-deep); }
+.hp-title { display: block; font-size: clamp(1.25rem, 5.5vw, 1.5rem); font-weight: 900; line-height: 1.3; text-wrap: balance; }
+.hp-bar .btn { flex: none; min-height: 48px; padding: 0 18px; }
+.hp-video { position: relative; width: 100%; max-width: 100%; aspect-ratio: 16 / 9; border-radius: 14px; overflow: hidden; background: #000; }
+.hp-video iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+.hp-note { font-size: 0.9rem; color: var(--muted); text-align: center; }
+.hp-nav { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.hp-nav .btn { min-height: 56px; font-size: clamp(0.95rem, 4vw, 1.05rem); }
+.hp-credit { font-size: 0.82rem; color: var(--muted); text-align: center; }
+.hp-credit a { text-decoration: underline; }

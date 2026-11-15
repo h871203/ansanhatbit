@@ -86,6 +86,42 @@
         });
         return list;
     }
+    // 앱 안 찬송 재생: data/hymns.json 에 영상이 있는 번호는 플레이어로, 없으면 유튜브 검색
+    function hymnVideo(n) { var h = data.hymns && data.hymns.hymns; return h && h[String(n)]; }
+    var hpList = [], hpIndex = 0;
+    function openHymn(list, i) {
+        hpList = list; hpIndex = i;
+        var n = list[i], v = hymnVideo(n);
+        $('hpNum').textContent = n + '장';
+        $('hpTitle').textContent = v ? v.t : '';
+        $('hpFrame').src = 'https://www.youtube-nocookie.com/embed/' + encodeURIComponent(v.v) + '?autoplay=1&rel=0&playsinline=1';
+        $('hpYoutube').href = 'https://www.youtube.com/watch?v=' + encodeURIComponent(v.v);
+        $('hpPrev').disabled = i === 0;
+        $('hpNext').disabled = i === list.length - 1;
+        $('hymnPlayer').hidden = false;
+        document.body.style.overflow = 'hidden';
+    }
+    function closeHymn() {
+        $('hymnPlayer').hidden = true;
+        $('hpFrame').src = 'about:blank';
+        document.body.style.overflow = '';
+    }
+    $('hpClose').addEventListener('click', closeHymn);
+    $('hpPrev').addEventListener('click', function () { if (hpIndex > 0) openHymn(hpList, hpIndex - 1); });
+    $('hpNext').addEventListener('click', function () { if (hpIndex < hpList.length - 1) openHymn(hpList, hpIndex + 1); });
+    $('hymnPlayer').addEventListener('click', function (e) { if (e.target === this) closeHymn(); });
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !$('hymnPlayer').hidden) closeHymn(); });
+    // 찬송 번호 링크(data-hymn)를 누르면: 영상이 있으면 앱 안에서, 그 묶음(data-hymns) 안에서 앞뒤로 넘김
+    document.addEventListener('click', function (e) {
+        var a = e.target.closest('[data-hymn]');
+        if (!a || !hymnVideo(a.dataset.hymn)) return;
+        e.preventDefault();
+        var box = a.closest('[data-hymn-group]') || document;
+        var list = [].map.call(box.querySelectorAll('[data-hymn]'), function (x) { return +x.dataset.hymn; })
+            .filter(function (n, i, arr) { return hymnVideo(n) && arr.indexOf(n) === i; });
+        openHymn(list, Math.max(0, list.indexOf(+a.dataset.hymn)));
+    });
+
     function renderHomeHymns() {
         var c = data.church || {}, b = bulletins()[0];
         var sv = b && (b.services || [])[0];
@@ -94,7 +130,9 @@
         if (hymns.length) {
             $('homeHymnWhen').textContent = (+b.date.slice(5, 7)) + '월 ' + (+b.date.slice(8)) + '일 ' + (sv.name || '');
             $('homeHymnList').innerHTML = hymns.map(function (h) {
-                return '<a class="hymn-chip" target="_blank" rel="noopener" href="' + hymnUrl(h.n) + '"><b>' + h.n + '장</b><small>' + esc(h.item) + '</small></a>';
+                var v = hymnVideo(h.n);
+                return '<a class="hymn-chip" target="_blank" rel="noopener" data-hymn="' + h.n + '" href="' + hymnUrl(h.n) + '"><b>' + h.n + '장</b>' +
+                    (v ? '<span class="hc-title">' + esc(v.t) + '</span>' : '') + '<small>' + esc(h.item) + '</small></a>';
             }).join('');
             var pl = (b && b.hymnPlaylist) || c.hymnPlaylist;
             $('homeHymnAll').hidden = !pl;
@@ -868,7 +906,7 @@
             if (r.stand) hasStand = true;
             var ps = r.passages || [];
             var detail = r.detail ? (r.item.indexOf('찬송') >= 0
-                ? esc(r.detail).replace(/(\d{1,3})장/g, function (m, n) { return '<a class="hymn-mini" target="_blank" rel="noopener" href="' + hymnUrl(n) + '">' + n + '장 <span aria-hidden="true">🎵</span></a>'; })
+                ? esc(r.detail).replace(/(\d{1,3})장/g, function (m, n) { return '<a class="hymn-mini" target="_blank" rel="noopener" data-hymn="' + n + '" href="' + hymnUrl(n) + '">' + n + '장 <span aria-hidden="true">🎵</span></a>'; })
                 : esc(r.detail)) : ps.map(function (p) { return '<span class="bl-ref">' + esc(Bible.label(p)).replace(/(\S*–\S*)/g, '<span class="nowrap">$1</span>') + '</span>'; }).join('');
             return '<li class="bl-item' + (r.highlight ? ' bl-sermon' : '') + '">' +
                 '<span class="bl-name">' + (r.stand ? '<span class="bl-stand" aria-label="일어서서">※</span>' : '') + esc(r.item) + '</span>' +
@@ -877,7 +915,7 @@
                 (ps.length ? '<div class="bl-passages">' + ps.map(passageBlock).join('') + '</div>' : '') +
                 '</li>';
         }).join('');
-        return '<section class="bl-service">' +
+        return '<section class="bl-service" data-hymn-group>' +
             '<div class="bl-service-head"><h4>' + esc(sv.name) + '</h4><span class="bl-time">' + esc(sv.time || '') + '</span></div>' +
             ((sv.note || sv.leader) ? '<p class="bl-leader">' + esc([sv.note, sv.leader].filter(Boolean).join(' · ')) + '</p>' : '') +
             '<ol class="bl-order">' + rows + '</ol>' +
@@ -1207,8 +1245,8 @@
 
     // ---------- 시작 ----------
     fillBookSelect();
-    Promise.all(['church', 'sermons', 'qt', 'prayers', 'news', 'audio-kjv', 'bulletins', 'gallery'].map(loadJson)).then(function (res) {
-        data = { church: res[0], sermons: res[1], qt: res[2], prayers: res[3], news: res[4], audio: res[5], bulletins: res[6], gallery: res[7] };
+    Promise.all(['church', 'sermons', 'qt', 'prayers', 'news', 'audio-kjv', 'bulletins', 'gallery', 'hymns'].map(loadJson)).then(function (res) {
+        data = { church: res[0], sermons: res[1], qt: res[2], prayers: res[3], news: res[4], audio: res[5], bulletins: res[6], gallery: res[7], hymns: res[8] };
         Bible.setEsvProxy(data.church && data.church.esvProxy);
         renderHome();
         renderPrayerTimes();

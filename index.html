@@ -71,9 +71,9 @@
 
             <section class="hymn-strip" id="homeHymns" hidden>
                 <div class="hs-k">🎵 이번 주 부를 찬송 <small id="homeHymnWhen"></small></div>
-                <div class="hs-list" id="homeHymnList"></div>
+                <div class="hs-list" id="homeHymnList" data-hymn-group></div>
                 <a class="btn btn-primary block" id="homeHymnAll" target="_blank" rel="noopener" hidden>재생목록으로 이어 듣기</a>
-                <p class="hs-note">번호를 누르면 유튜브에서 그 찬송을 찾아 들려 드립니다.</p>
+                <p class="hs-note">번호를 누르면 반주가 나옵니다. 앞뒤 찬송으로 넘겨 들을 수 있어요.</p>
             </section>
             <a class="yt-link" id="homeYoutube" target="_blank" rel="noopener" hidden>▶ 안산햇빛교회 유튜브 채널</a>
 
@@ -351,6 +351,23 @@
             <button class="btn btn-primary block">시작하기</button>
             <p class="welcome-msg" id="welcomeMsg"></p>
         </form>
+    </div>
+
+    <!-- 찬송 듣기 (앱 안에서 유튜브 반주 재생) -->
+    <div class="hymn-player" id="hymnPlayer" hidden role="dialog" aria-modal="true" aria-labelledby="hpTitle">
+        <div class="hp-box">
+            <div class="hp-bar">
+                <div><span class="hp-num" id="hpNum"></span><strong class="hp-title" id="hpTitle"></strong></div>
+                <button class="btn" type="button" id="hpClose">닫기</button>
+            </div>
+            <div class="hp-video"><iframe id="hpFrame" title="찬송 반주 영상" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe></div>
+            <p class="hp-note">소리가 안 나오면 영상 가운데 재생 버튼을 눌러 주세요.</p>
+            <div class="hp-nav">
+                <button class="btn" type="button" id="hpPrev">◀ 앞 찬송</button>
+                <button class="btn" type="button" id="hpNext">다음 찬송 ▶</button>
+            </div>
+            <p class="hp-credit"><span class="nowrap">반주: 크리스찬 뮤직 라디오</span> · <a class="nowrap" id="hpYoutube" target="_blank" rel="noopener">유튜브에서 보기</a></p>
+        </div>
     </div>
 
     <div class="viewer" id="viewer" hidden>
