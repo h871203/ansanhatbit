@@ -380,7 +380,9 @@ textarea { resize: vertical; line-height: 1.5; }
 }
 
 /* ---------- 감사·기도 나눔 ---------- */
-.share-home p { color: var(--ink-soft); }
+.share-home p, .share-link-card p { color: var(--ink-soft); }
+.share-link-card { display: block; }
+.share-link-card .btn { margin-top: 12px; }
 .share-form { display: flex; flex-direction: column; gap: 10px; margin-top: 8px; }
 .share-write-btn { margin-bottom: 14px; min-height: 56px; font-size: 1.05rem; }
 .share-kinds { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
