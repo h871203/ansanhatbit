@@ -874,8 +874,9 @@
         $('viewerCount').textContent = viewerItems.length > 1 ? (viewerIndex + 1) + ' / ' + viewerItems.length : '';
         $('viewerPrev').disabled = viewerIndex === 0;
         $('viewerNext').disabled = viewerIndex === viewerItems.length - 1;
+        document.querySelector('.viewer-nav').hidden = viewerItems.length < 2;
         $('viewerStage').classList.remove('zoomed');
-        $('viewerZoom').textContent = '🔍 크게';
+        $('viewerZoom').textContent = '🔍 더 크게';
         $('viewerStage').scrollTo(0, 0);
     }
     function closeViewer() {
@@ -888,7 +889,7 @@
     $('viewerNext').addEventListener('click', function () { if (viewerIndex < viewerItems.length - 1) { viewerIndex++; showViewerItem(); } });
     $('viewerZoom').addEventListener('click', function () {
         var zoomed = $('viewerStage').classList.toggle('zoomed');
-        this.textContent = zoomed ? '🔍 작게' : '🔍 크게';
+        this.textContent = zoomed ? '🔍 원래대로' : '🔍 더 크게';
     });
     document.addEventListener('keydown', function (e) {
         if ($('viewer').hidden) return;
@@ -1190,6 +1191,7 @@
             '<button class="btn" id="albumBack">◀ 앨범 목록</button>' +
             '<h3 class="sermon-title" style="margin-top:14px">' + esc(a.title) + '</h3>' +
             '<p class="muted">' + koDate(a.date) + (a.description ? ' · ' + esc(a.description) : '') + '</p>' +
+            '<p class="muted">사진을 누르면 크게 보여요.</p>' +
             '<div class="photo-grid">' + photos.map(function (p, j) {
                 return '<button data-j="' + j + '"><img loading="lazy" src="' + esc(p.src) + '" alt="' + esc(p.caption || '') + '"></button>';
             }).join('') + '</div>';

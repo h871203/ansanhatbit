@@ -523,3 +523,6 @@ html[data-font="large"] .big-btn small, html[data-font="xlarge"] .big-btn small 
 .guide-bar { display: block; height: 10px; margin-top: 4px; border-radius: 5px; background: var(--line); overflow: hidden; }
 .guide-bar[hidden] { display: none; }
 .guide-fill { display: block; height: 100%; width: 0; background: var(--sun-deep); transition: width 0.3s linear; }
+
+/* 앨범: 날짜·설명 글씨를 어르신 눈에 맞게 크고 진하게 */
+.album-card small, #albumDetail .muted { font-size: 1rem; font-weight: 600; color: var(--ink-soft); }
