@@ -39,6 +39,8 @@
                     <symbol id="i-photo" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="10" r="1.6"/><path d="M21 16l-5-5-8 8"/></symbol>
                     <symbol id="i-pin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s7-6.2 7-12a7 7 0 0 0-14 0c0 5.8 7 12 7 12z"/><circle cx="12" cy="10" r="2.5"/></symbol>
                     <symbol id="i-copy" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="8" width="13" height="13" rx="2"/><path d="M16 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h3"/></symbol>
+                    <symbol id="i-play" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></symbol>
+                    <symbol id="i-pause" viewBox="0 0 24 24" fill="currentColor"><path d="M7 5h4v14H7zM13 5h4v14h-4z"/></symbol>
                 </defs>
             </svg>
 
@@ -48,6 +50,15 @@
                 <h1 id="heroTitle">안산햇빛교회</h1>
                 <p class="home-sub" id="homeSub">기독교대한감리회</p>
             </div>
+
+            <section class="guide-strip" id="guideStrip">
+                <button class="guide-btn" id="guideBtn" type="button" aria-pressed="false">
+                    <span class="gb-ic"><svg aria-hidden="true"><use id="guideIcon" href="#i-play"/></svg></span>
+                    <span class="gb-text"><strong id="guideLabel">앱 사용법 듣기</strong><small id="guideTime">약 3분 · 천천히 알려 드려요</small>
+                        <span class="guide-bar" id="guideBarWrap" hidden><span class="guide-fill" id="guideFill"></span></span></span>
+                </button>
+                <audio id="guideAudio" src="audio/guide.mp3" preload="none"></audio>
+            </section>
 
             <a class="next-worship" href="#church">
                 <span class="nw-k">다음 예배</span>

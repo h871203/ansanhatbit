@@ -1,5 +1,5 @@
 // 앱 화면은 오프라인에서도 열리도록 저장하고, 교회 데이터(data/*.json)는 항상 새로 받아 옵니다.
-var CACHE = 'hatbit-v20';
+var CACHE = 'hatbit-v21';
 var SHELL = [
     './', 'index.html', 'css/app.css', 'js/bible.js', 'js/app.js', 'manifest.webmanifest',
     'icons/icon.svg', 'icons/icon-192.png', 'icons/icon-512.png',
@@ -20,6 +20,8 @@ self.addEventListener('activate', function (e) {
 self.addEventListener('fetch', function (e) {
     var url = new URL(e.request.url);
     if (e.request.method !== 'GET' || url.origin !== location.origin) return;
+    // 소리 파일은 부분씩 받아 오므로 브라우저에 맡김
+    if (/\.mp3$/.test(url.pathname)) return;
 
     // 네트워크 우선, 실패하면 저장본
     e.respondWith(fetch(e.request).then(function (res) {

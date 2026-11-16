@@ -1237,6 +1237,35 @@
         $('churchLinks').innerHTML = links;
     }
 
+    // ---------- 앱 사용법 듣기 ----------
+    (function () {
+        var audio = $('guideAudio'), btn = $('guideBtn');
+        if (!audio || !btn) return;
+        function mmss(t) { t = Math.max(0, Math.floor(t || 0)); return Math.floor(t / 60) + '분 ' + (t % 60) + '초'; }
+        function paint() {
+            var playing = !audio.paused && !audio.ended;
+            $('guideIcon').setAttribute('href', playing ? '#i-pause' : '#i-play');
+            btn.setAttribute('aria-pressed', playing ? 'true' : 'false');
+            $('guideLabel').textContent = playing ? '잠깐 멈추기' : (audio.currentTime > 0 && !audio.ended ? '이어서 듣기' : '앱 사용법 듣기');
+            if (audio.duration && audio.currentTime > 0 && !audio.ended) {
+                $('guideBarWrap').hidden = false;
+                $('guideFill').style.width = (audio.currentTime / audio.duration * 100) + '%';
+                $('guideTime').textContent = mmss(audio.currentTime) + ' / ' + mmss(audio.duration);
+            } else if (audio.ended) {
+                $('guideBarWrap').hidden = true;
+                $('guideTime').textContent = '다 들으셨어요';
+            }
+        }
+        btn.addEventListener('click', function () {
+            if (audio.paused) {
+                if (audio.ended) audio.currentTime = 0;
+                var p = audio.play();
+                if (p && p.catch) p.catch(function () { $('guideTime').textContent = '소리를 틀 수 없어요. 잠시 뒤 다시 눌러 주세요'; });
+            } else audio.pause();
+        });
+        ['play', 'pause', 'timeupdate', 'ended', 'loadedmetadata'].forEach(function (ev) { audio.addEventListener(ev, paint); });
+    })();
+
     // ---------- 앱 설치 · 서비스워커 ----------
     var installPrompt = null;
     window.addEventListener('beforeinstallprompt', function (e) {
