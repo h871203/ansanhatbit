@@ -103,7 +103,7 @@ main { max-width: 680px; margin: 0 auto; padding: 16px; }
 .prayer-next { font-size: 0.9rem; color: var(--ink-soft); text-align: center; }
 
 .verse-card { border-left: 5px solid var(--sun); }
-.verse-text { font-size: 1.1rem; font-weight: 600; }
+.verse-text { font-size: 1.1rem; font-weight: 600; text-wrap: balance; }
 .verse-ref { color: var(--sun-deep); font-weight: 600; font-size: 0.9rem; }
 
 .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px; }
@@ -305,7 +305,7 @@ textarea { resize: vertical; line-height: 1.5; }
 .viewer-stage img { max-width: 100%; max-height: 100%; object-fit: contain; }
 .viewer-stage.zoomed { display: block; }
 .viewer-stage.zoomed img { max-width: none; max-height: none; width: 200%; }
-.viewer-caption { padding: 4px 16px; text-align: center; min-height: 1.6em; }
+.viewer-caption { padding: 10px 16px 18px; text-align: center; min-height: 1.6em; font-size: 1.1rem; font-weight: 600; text-wrap: balance; }
 
 /* ---------- 글자 주보 ---------- */
 #bulletinDetail { overflow-wrap: break-word; }
