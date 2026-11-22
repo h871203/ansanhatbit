@@ -9,6 +9,8 @@
 // POST /posts/:id/amen             '함께 기도해요' +1
 // GET  /admin/posts                올라간 글과 최근 내린 글 (X-Admin-Code)
 // POST /admin/posts/:id {status}   approved(다시 올리기) | hidden(내리기) (X-Admin-Code)
+// POST /visit {device, view}        앱 사용 인원 (이름 없음, 하루·화면마다 한 번)
+// GET  /admin/stats                 오늘·이번 주·이번 달 인원, 7일 그래프, 많이 본 화면 (X-Admin-Code)
 
 const ALLOWED_ORIGINS = [
     'https://h871203.github.io',
@@ -19,6 +21,12 @@ const ALLOWED_ORIGINS = [
 ];
 const KINDS = ['thanks', 'prayer'];
 const STATUSES = ['approved', 'hidden'];
+const VISIT_VIEWS = ['app', 'home', 'bible', 'sermon', 'qt', 'prayer', 'church', 'bulletin', 'photos', 'share'];
+
+// 한국 날짜 (UTC+9)
+function koDay(offsetDays = 0) {
+    return new Date(Date.now() + 9 * 3600000 - offsetDays * 86400000).toISOString().slice(0, 10);
+}
 
 function cors(origin) {
     return {
@@ -100,6 +108,29 @@ export default {
             if (!STATUSES.includes(body.status)) return json(origin, { error: 'bad_input' }, 400);
             await env.DB.prepare(`UPDATE posts SET status = ? WHERE id = ?`).bind(body.status, +m[1]).run();
             return json(origin, { ok: true });
+        }
+        if (request.method === 'POST' && path === '/visit') {
+            const body = await request.json().catch(() => ({}));
+            const device = String(body.device || '');
+            const view = VISIT_VIEWS.includes(body.view) ? body.view : null;
+            if (!/^[a-z0-9]{16,40}$/.test(device) || !view) return json(origin, { error: 'bad_input' }, 400);
+            await env.DB.prepare(`INSERT OR IGNORE INTO visits (day, device, view) VALUES (?, ?, ?)`)
+                .bind(koDay(), device, view).run();
+            return json(origin, { ok: true });
+        }
+        if (request.method === 'GET' && path === '/admin/stats') {
+            const today = koDay(), week = koDay(6), month = today.slice(0, 8) + '01';
+            const count = (from) => env.DB.prepare(
+                `SELECT COUNT(DISTINCT device) AS n FROM visits WHERE view = 'app' AND day >= ? AND day <= ?`).bind(from, today).first();
+            const [t, w, mo, daily, views] = await Promise.all([
+                count(today), count(week), count(month),
+                env.DB.prepare(`SELECT day, COUNT(DISTINCT device) AS n FROM visits WHERE view = 'app' AND day >= ? GROUP BY day`).bind(week).all(),
+                env.DB.prepare(`SELECT view, COUNT(DISTINCT device) AS n FROM visits WHERE view != 'app' AND day >= ? GROUP BY view ORDER BY n DESC`).bind(koDay(29)).all(),
+            ]);
+            const byDay = Object.fromEntries(daily.results.map((r) => [r.day, r.n]));
+            const days = [];
+            for (let i = 6; i >= 0; i--) { const d = koDay(i); days.push({ day: d, n: byDay[d] || 0 }); }
+            return json(origin, { today: t.n, week: w.n, month: mo.n, days, views: views.results });
         }
         return json(origin, { error: 'not_found' }, 404);
     },

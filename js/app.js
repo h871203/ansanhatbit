@@ -71,6 +71,7 @@
         if (name !== 'photos') showAlbum(null);
         if (name === 'share') openShare();
         if (name === 'share-admin') openAdmin();
+        else countVisit(name);
         window.scrollTo(0, 0);
     }
     window.addEventListener('hashchange', route);
@@ -1131,10 +1132,65 @@
         }).catch(function () { b.disabled = false; b.classList.remove('done'); });
     });
 
+    // ---------- 앱 사용 인원 (이름 없이 휴대폰마다 하루 한 번) ----------
+    // 이 휴대폰만의 무작위 번호표. 이름·연락처는 보내지 않음
+    function deviceId() {
+        var id = store.get('deviceId', '');
+        if (!/^[a-z0-9]{16,40}$/.test(id)) {
+            id = '';
+            var a = new Uint8Array(12);
+            (window.crypto || window.msCrypto).getRandomValues(a);
+            for (var i = 0; i < a.length; i++) id += ('0' + a[i].toString(16)).slice(-2);
+            store.set('deviceId', id);
+        }
+        return id;
+    }
+    function countVisit(view) {
+        if (/^(localhost|127\.0\.0\.1)$/.test(location.hostname)) return; // 만드는 사람 컴퓨터는 세지 않음
+        var base = ((data.church && data.church.shareApi) || '').replace(/\/+$/, '');
+        if (!base) return;
+        var today = dateKey(new Date());
+        var log = store.get('visitLog', {});
+        if (log.day !== today) log = { day: today, sent: [] };
+        ['app', view].forEach(function (v) {
+            if (log.sent.indexOf(v) >= 0) return;
+            log.sent.push(v);
+            fetch(base + '/visit', { method: 'POST', keepalive: true, headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ device: deviceId(), view: v }) }).catch(function () {});
+        });
+        store.set('visitLog', log);
+    }
+    var VIEW_LABEL = { home: '첫 화면', bible: '성경 읽기', sermon: '목사님 말씀', qt: '오늘의 QT', prayer: '기도',
+        church: '교회 소식 · 안내', bulletin: '주보', photos: '교회 앨범', share: '감사·기도 나눔' };
+    function renderStats() {
+        shareApi('/admin/stats', null, true).then(function (d) {
+            var max = Math.max.apply(null, d.days.map(function (x) { return x.n; }).concat([1]));
+            var WEEK = ['일', '월', '화', '수', '목', '금', '토'];
+            $('statsCard').innerHTML =
+                '<div class="stat-nums">' +
+                [['오늘', d.today], ['최근 7일', d.week], ['이번 달', d.month]].map(function (x) {
+                    return '<div><b>' + x[1] + '명</b><span>' + x[0] + '</span></div>';
+                }).join('') + '</div>' +
+                '<div class="stat-chart" role="img" aria-label="최근 7일 날마다 들어온 사람 수">' + d.days.map(function (x) {
+                    var dt = new Date(x.day + 'T00:00:00');
+                    return '<div><em>' + x.n + '</em><i style="height:' + Math.round(x.n / max * 100) + '%"></i><small>' +
+                        WEEK[dt.getDay()] + '</small></div>';
+                }).join('') + '</div>' +
+                '<p class="muted small">최근 7일, 날마다 앱을 연 사람 수</p>' +
+                (d.views && d.views.length ? '<h4 class="stat-sub">많이 본 화면 (최근 30일, 본 사람 수)</h4><ol class="stat-views">' +
+                    d.views.map(function (v) { return '<li><span>' + esc(VIEW_LABEL[v.view] || v.view) + '</span><b>' + v.n + '명</b></li>'; }).join('') + '</ol>'
+                    : '') +
+                '<p class="muted small">휴대폰 한 대를 한 사람으로 셉니다. 이름은 남지 않습니다.</p>';
+        }).catch(function (e) {
+            if (e.status !== 401) $('statsCard').innerHTML = '<p class="empty-note">' + esc(shareError(e)) + '</p>';
+        });
+    }
+
     function openAdmin() {
         var has = !!sessionGet('adminCode');
         $('adminLogin').hidden = has; $('adminMain').hidden = !has;
         if (!has) return;
+        renderStats();
         $('adminApproved').innerHTML = '<li class="empty-note">불러오는 중…</li>';
         shareApi('/admin/posts', null, true).then(function (d) {
             var posts = d.posts || [];

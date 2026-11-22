@@ -289,7 +289,7 @@
 
         <!-- 나눔 관리자 -->
         <section class="view" id="view-share-admin" hidden>
-            <h2 class="view-title">나눔판 관리</h2>
+            <h2 class="view-title">관리자 화면</h2>
             <div class="card" id="adminLogin">
                 <div class="card-kicker">🔒 관리자 암호</div>
                 <form id="adminLoginForm" class="share-form">
@@ -299,6 +299,9 @@
                 <p class="muted small" id="adminLoginMsg"></p>
             </div>
             <div id="adminMain" hidden>
+                <h3 class="section-title">앱 사용 인원</h3>
+                <div class="card" id="statsCard"><p class="empty-note">불러오는 중…</p></div>
+                <h3 class="section-title">나눔판 관리</h3>
                 <p class="muted small">맞지 않는 글은 '내리기'를 누르면 나눔판에서 사라집니다.</p>
                 <h3 class="section-title">나눔판에 올라간 글</h3>
                 <ul class="share-list" id="adminApproved"></ul>
