@@ -776,13 +776,15 @@
               '" title="설교 영상" allow="encrypted-media; picture-in-picture" allowfullscreen loading="lazy"></iframe></div>'
             : '';
         var passages = s.passages || (s.passage ? [s.passage] : []);
-        function para(text) { return text ? '<p class="sermon-text">' + esc(text) + '</p>' : ''; }
+        function para(text) {
+            return text ? String(text).split(/\n\s*\n/).map(function (t) { return '<p class="sermon-text">' + esc(t.trim()) + '</p>'; }).join('') : '';
+        }
         function pointList(points) {
             return points && points.length ? '<ol class="prayer-list">' +
                 points.map(function (p) { return '<li>' + esc(p) + '</li>'; }).join('') + '</ol>' : '';
         }
         $('sermonDetail').innerHTML =
-            '<div class="card-kicker">' + (i === 0 ? '이번 주 말씀 · ' : '') + koDate(s.date) + '</div>' +
+            '<div class="card-kicker">' + (i === 0 ? '이번 주 말씀 · ' : '') + koDate(s.date) + (s.occasion ? ' · ' + esc(s.occasion) : '') + '</div>' +
             '<h3 class="sermon-title">' + esc(s.title) + '</h3>' +
             (s.preacher ? '<p class="muted">' + esc(s.preacher) + '</p>' : '') +
             '<p class="verse-ref">' + passages.map(function (p) { return esc(Bible.label(p)); }).join(' · ') + '</p>' +
