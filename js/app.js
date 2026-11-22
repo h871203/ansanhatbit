@@ -1145,21 +1145,33 @@
         }
         return id;
     }
+    // 날짜는 서버와 같은 한국 시간으로 나눔
+    function koToday() { return new Date(Date.now() + 9 * 3600000).toISOString().slice(0, 10); }
     function countVisit(view) {
         if (/^(localhost|127\.0\.0\.1)$/.test(location.hostname)) return; // 만드는 사람 컴퓨터는 세지 않음
         var base = ((data.church && data.church.shareApi) || '').replace(/\/+$/, '');
-        if (!base) return;
-        var today = dateKey(new Date());
+        if (!base || !view || view === 'share-admin') return;
+        var today = koToday();
         var log = store.get('visitLog', {});
-        if (log.day !== today) log = { day: today, sent: [] };
+        if (log.day !== today || !Array.isArray(log.sent)) log = { day: today, sent: [] };
         ['app', view].forEach(function (v) {
-            if (log.sent.indexOf(v) >= 0) return;
-            log.sent.push(v);
+            if (log.sent.indexOf(v) >= 0 || countVisit.busy[v]) return;
+            countVisit.busy[v] = true;
             fetch(base + '/visit', { method: 'POST', keepalive: true, headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ device: deviceId(), view: v }) }).catch(function () {});
+                body: JSON.stringify({ device: deviceId(), view: v }) }).then(function (r) {
+                if (!r.ok) return;
+                var cur = store.get('visitLog', {}); // 보내기에 성공한 것만 적음 (실패하면 다음에 다시 보냄)
+                if (cur.day !== today || !Array.isArray(cur.sent)) cur = { day: today, sent: [] };
+                if (cur.sent.indexOf(v) < 0) cur.sent.push(v);
+                store.set('visitLog', cur);
+            }).catch(function () {}).then(function () { countVisit.busy[v] = false; });
         });
-        store.set('visitLog', log);
     }
+    countVisit.busy = {};
+    // 앱을 닫지 않고 뒤로 보냈다가 다음 날 다시 열어도 셈
+    document.addEventListener('visibilitychange', function () {
+        if (document.visibilityState === 'visible' && data) countVisit((location.hash || '#home').slice(1) || 'home');
+    });
     var VIEW_LABEL = { home: '첫 화면', bible: '성경 읽기', sermon: '목사님 말씀', qt: '오늘의 QT', prayer: '기도',
         church: '교회 소식 · 안내', bulletin: '주보', photos: '교회 앨범', share: '감사·기도 나눔' };
     function renderStats() {
@@ -1168,7 +1180,7 @@
             var WEEK = ['일', '월', '화', '수', '목', '금', '토'];
             $('statsCard').innerHTML =
                 '<div class="stat-nums">' +
-                [['오늘', d.today], ['최근 7일', d.week], ['이번 달', d.month]].map(function (x) {
+                [['오늘', d.today], ['최근 7일', d.week], ['최근 30일', d.month]].map(function (x) {
                     return '<div><b>' + x[1] + '명</b><span>' + x[0] + '</span></div>';
                 }).join('') + '</div>' +
                 '<div class="stat-chart" role="img" aria-label="최근 7일 날마다 들어온 사람 수">' + d.days.map(function (x) {

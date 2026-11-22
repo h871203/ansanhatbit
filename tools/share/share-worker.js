@@ -10,7 +10,7 @@
 // GET  /admin/posts                올라간 글과 최근 내린 글 (X-Admin-Code)
 // POST /admin/posts/:id {status}   approved(다시 올리기) | hidden(내리기) (X-Admin-Code)
 // POST /visit {device, view}        앱 사용 인원 (이름 없음, 하루·화면마다 한 번)
-// GET  /admin/stats                 오늘·이번 주·이번 달 인원, 7일 그래프, 많이 본 화면 (X-Admin-Code)
+// GET  /admin/stats                 오늘·최근 7일·최근 30일 인원, 7일 그래프, 많이 본 화면 (X-Admin-Code)
 
 const ALLOWED_ORIGINS = [
     'https://h871203.github.io',
@@ -114,12 +114,17 @@ export default {
             const device = String(body.device || '');
             const view = VISIT_VIEWS.includes(body.view) ? body.view : null;
             if (!/^[a-z0-9]{16,40}$/.test(device) || !view) return json(origin, { error: 'bad_input' }, 400);
+            // 부풀리기 막기: 하루에 휴대폰 500대까지만 셈 (교회 규모보다 넉넉함)
+            const n = await env.DB.prepare(`SELECT COUNT(DISTINCT device) AS n FROM visits WHERE day = ?`).bind(koDay()).first();
+            if (n.n >= 500) return json(origin, { error: 'too_many' }, 429);
             await env.DB.prepare(`INSERT OR IGNORE INTO visits (day, device, view) VALUES (?, ?, ?)`)
                 .bind(koDay(), device, view).run();
             return json(origin, { ok: true });
         }
         if (request.method === 'GET' && path === '/admin/stats') {
-            const today = koDay(), week = koDay(6), month = today.slice(0, 8) + '01';
+            const today = koDay(), week = koDay(6), month = koDay(29);
+            // 400일 지난 기록은 지움 (휴대폰별 기록이 끝없이 쌓이지 않게)
+            await env.DB.prepare(`DELETE FROM visits WHERE day < ?`).bind(koDay(400)).run();
             const count = (from) => env.DB.prepare(
                 `SELECT COUNT(DISTINCT device) AS n FROM visits WHERE view = 'app' AND day >= ? AND day <= ?`).bind(from, today).first();
             const [t, w, mo, daily, views] = await Promise.all([
