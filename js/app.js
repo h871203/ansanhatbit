@@ -788,7 +788,7 @@
             '<div class="card-kicker">' + (i === 0 ? '이번 주 말씀 · ' : '') + koDate(s.date) + (s.occasion ? ' · ' + esc(s.occasion) : '') + '</div>' +
             '<h3 class="sermon-title">' + esc(s.title) + '</h3>' +
             (s.preacher ? '<p class="muted">' + esc(s.preacher) + '</p>' : '') +
-            '<p class="verse-ref">' + passages.map(function (p) { return esc(Bible.label(p)); }).join(' · ') + '</p>' +
+            '<p class="verse-ref">' + passages.map(function (p) { return esc(Bible.label(p)).replace(/–/g, '\u2060–\u2060'); }).join(' · ') + '</p>' +
             video + passages.map(passageBlock).join('') +
             para(s.intro || s.summary) +
             (s.sections || []).map(function (sec) {
